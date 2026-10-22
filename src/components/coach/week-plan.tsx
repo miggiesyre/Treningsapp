@@ -12,6 +12,8 @@ import { defaultParts } from '@/lib/plan/library';
 import { activityStats } from '@/lib/plan/athlete';
 import { chipView, isPaused } from '@/lib/plan/view';
 import { AddSheet } from './add-sheet';
+import { AlertModal } from './alert-modal';
+import { loadAlerts, type Alert } from '@/lib/plan/actions';
 import { Builder } from './builder';
 import { CopySheet } from './copy-sheet';
 import { EditSheet } from './edit-sheet';
@@ -34,6 +36,18 @@ export function WeekPlan() {
   const drag = useRef<Planned | null>(null);
   const guide = useGuide();
   const openSettings = useOpenSettings();
+  // Unhandled changes from Miguel pop up once per login session (prototype: alertOpen at login).
+  const [alert, setAlert] = useState<Alert | null>(null);
+  const nextAlert = useCallback(async () => {
+    const open = (await loadAlerts(supabase, athleteId)).filter((a) => !a.decided_at);
+    setAlert(open[0] ?? null);
+  }, [supabase, athleteId]);
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem('alerts-later')) return;
+    } catch {}
+    nextAlert();
+  }, [nextAlert]);
 
   const reload = useCallback(async () => {
     const d = await loadWeek(cw);
@@ -276,7 +290,22 @@ export function WeekPlan() {
         />
       )}
       {copyOpen && <CopySheet from={cw} onClose={() => setCopyOpen(false)} onDone={reload} />}
-      {guide.show && !edit && addDay == null && !draft && <Guide onDone={guide.done} />}
+      {alert && !edit && addDay == null && !draft && (
+        <AlertModal
+          alert={alert}
+          onClose={() => {
+            try {
+              sessionStorage.setItem('alerts-later', '1');
+            } catch {}
+            setAlert(null);
+          }}
+          onDone={async () => {
+            await nextAlert();
+            await reload();
+          }}
+        />
+      )}
+      {guide.show && !alert && !edit && addDay == null && !draft && <Guide onDone={guide.done} />}
     </div>
   );
 }

@@ -1,5 +1,10 @@
-import { PageTitle } from '@/components/app-shell';
+import { ZonesPage } from '@/components/athlete/zones';
+import { ClientOnly } from '@/components/client-only';
 
 export default function Page() {
-  return <PageTitle title="Soner" />;
+  return (
+    <ClientOnly>
+      <ZonesPage />
+    </ClientOnly>
+  );
 }

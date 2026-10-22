@@ -4,6 +4,7 @@ import type { Activity, Change, Planned, WeekData } from './coach-data';
 import { DAYS, SD, WEEKS, dateOf, parseYmd, weekDay, ymd } from './dates';
 import { describe, hm, nf, pace, volOf, type Prog, type Template } from './library';
 import { SP, SST, TINT, type Sport, type VisualState } from './sports';
+import { DECISION_TEXT, effKind } from './changes';
 import { isPaused } from './view';
 
 export const RACE = new Date(2027, 3, 24);
@@ -36,7 +37,7 @@ export function weekEntries(w: number, data: AthleteWeek, byId: Record<string, T
     const e = { p, t, change, logged: data.logged[p.id] ?? 0 };
     const from = weekDay(parseYmd(p.date));
     if (from.w !== w) continue;
-    if (change?.kind === 'moved' && change.to_date) {
+    if (effKind(change) === 'moved' && change?.to_date) {
       const to = weekDay(parseYmd(change.to_date));
       if (to.w === w) {
         days[to.d].push({ ...e, date: change.to_date });
@@ -62,7 +63,8 @@ export function sessionView(e: Entry, prog: Prog, swimBack: Date | null) {
   const { p, t, change } = e;
   const c = SP[t.sport].c;
   const paused = isPaused(t, p.date, swimBack);
-  const kind = change?.kind;
+  const kind = effKind(change);
+  const decided = change?.coach_decision ? DECISION_TEXT[change.coach_decision] : '';
   const skipped = kind === 'skipped';
   const short = kind === 'shortened';
   const indoor = kind === 'indoor';
@@ -94,14 +96,16 @@ export function sessionView(e: Entry, prog: Prog, swimBack: Date | null) {
   const banner = paused
     ? 'Svømming er pauset til januar (skulder).'
     : skipped
-      ? `Hoppet over${change?.reason ? ' · ' + change.reason : ''}`
+      ? `${change?.coach_decision === 'drop' ? 'Droppet av Ruben' : 'Hoppet over'}${change?.reason ? ' · ' + change.reason : ''}`
       : indoor
         ? `Innendørs: ${altText}`
         : short
           ? 'Kort versjon – 60 % av volumet'
           : kind === 'moved'
             ? `Flyttet fra ${DAYS[from].toLowerCase()}`
-            : '';
+            : decided && change?.coach_decision !== 'drop'
+              ? decided
+              : '';
   return {
     ...SST(c, vst),
     ...d,
@@ -121,7 +125,7 @@ export function sessionView(e: Entry, prog: Prog, swimBack: Date | null) {
     banner,
     bannerColor: skipped ? 'var(--bad)' : c,
     note: p.note_override ?? t.note ?? '',
-    canSwap: !done && !paused && !kind && !e.ghost && o >= now,
+    canSwap: !done && !paused && !change && !e.ghost && o >= now,
     canUndo: !!kind && !done && !change?.coach_decision,
     optional: t.is_optional,
   };

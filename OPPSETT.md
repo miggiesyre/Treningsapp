@@ -1,6 +1,6 @@
 # Oppsett (det du må gjøre selv)
 
-Fase 1: steg 1–4. Fase 2 (Rubens ukeplan): steg 5. Fase 3 (din side): steg 6. Fase 4 (Strava): steg 7.
+Fase 1: steg 1–4. Fase 2 (Rubens ukeplan): steg 5. Fase 3 (din side): steg 6. Fase 4 (Strava): steg 7. Fase 5 (resten): steg 8.
 
 Alt her er gratis. Regn med ca. 1 time første gang.
 **Gyldne regel:** Nøkler og passord limes bare inn i Supabase, Vercel eller fila `.env.local` på Macen din. Aldri i chat, aldri i koden.
@@ -166,6 +166,18 @@ Gjort: Strava-app (klient-ID 266978) og `STRAVA_CLIENT_ID` / `STRAVA_CLIENT_SECR
 - [ ] En økt som ikke står i planen vises som **Ekstra økt** (Trening, Hjem og Rubens Ukeplan).
 - [ ] «Denne uka» teller km fra Strava.
 - [ ] Innstillinger → Strava → **Synk nå** henter de siste 14 dagene på nytt.
+
+---
+
+## 8. Fase 5 – resten av appen
+
+Ingen SQL. Test:
+- [ ] **Progresjon** (deg): FTP / Vekt / VO2 maks / Søvn-graf, volum per uke (planlagt mot gjennomført), skadelogg med «+ Ny». Fanen **Pakkeliste**: «Bruk standardlista», trykk Har / Kjøp / Pakket.
+- [ ] **Soner** (deg): trykk FTP, maks puls, hvilepuls og terskelpace → sonene regnes ut.
+- [ ] **SoMe** (deg): velg økter → «Lag bilde» → velg Story/Innlegg og bakgrunn → **Del ↗** → Instagram → Historie.
+- [ ] **Varsler** (Ruben): et rødt tall på fanen når du endrer en økt. «Håndter» → Dropp / Flytt / Dobbeløkt / Erstatt. Uhåndterte varsler spretter opp i Ukeplan.
+- [ ] **Miguel** (Ruben): soner, innsjekk, «+ Ny test», ukentlige mål, siste kommentarer, egne økter, skadelogg.
+- [ ] Kommentarer dukker opp hos den andre i løpet av 10 sekunder uten å laste siden på nytt.
 
 ---
 

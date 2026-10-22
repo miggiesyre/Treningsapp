@@ -8,6 +8,7 @@ import { useToast } from '@/components/toast';
 import { REASONS, activityStats, sessionView, todayOrd } from '@/lib/plan/athlete';
 import { addChange, undoChange } from '@/lib/plan/athlete-actions';
 import { addComment } from '@/lib/plan/actions';
+import { DECISION_TEXT } from '@/lib/plan/changes';
 import { blockOf, usePlan, type Change } from '@/lib/plan/coach-data';
 import { DAYS, SD, dateOf, fmtD, parseYmd, weekDay, ymd } from '@/lib/plan/dates';
 import { exerciseRows } from '@/lib/plan/library';
@@ -54,8 +55,16 @@ export function SessionPage({ id }: { id: string }) {
     const { data } = await supabase.from('comments').select('id, author_id, body, created_at').eq('planned_session_id', id).order('created_at');
     setMsgs((data ?? []) as Msg[]);
   }, [supabase, id]);
+  // New comments show up without reloading: refresh every 10 s while the page is visible.
   useEffect(() => {
     loadMsgs();
+    const t = setInterval(() => document.visibilityState === 'visible' && loadMsgs(), 10000);
+    const onVis = () => document.visibilityState === 'visible' && loadMsgs();
+    document.addEventListener('visibilitychange', onVis);
+    return () => {
+      clearInterval(t);
+      document.removeEventListener('visibilitychange', onVis);
+    };
   }, [loadMsgs]);
 
   const back = () => (window.history.length > 1 ? router.back() : router.push('/hjem'));
@@ -80,6 +89,9 @@ export function SessionPage({ id }: { id: string }) {
 
   const thread = [
     ...wk.data.changes.filter((c) => c.planned_session_id === id).map((c) => ({ key: c.id, sys: true, mine: false, text: `Miguel ${CHANGE_TEXT[c.kind]}${c.reason ? ' · ' + c.reason : ''}`, at: c.created_at })),
+    ...wk.data.changes
+      .filter((c) => c.planned_session_id === id && c.decided_at)
+      .map((c) => ({ key: c.id + 'd', sys: true, mine: false, text: `Ruben: ${c.coach_decision ? DECISION_TEXT[c.coach_decision] : 'OK'}`, at: c.decided_at! })),
     ...msgs.map((x) => ({ key: x.id, sys: false, mine: x.author_id === athleteId, text: x.body, at: x.created_at })),
   ].sort((a, b2) => a.at.localeCompare(b2.at));
 

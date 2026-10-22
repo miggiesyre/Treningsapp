@@ -281,3 +281,33 @@ input:focus, textarea:focus { outline: none; }
   .home-ring { width: 132px; height: 132px; }
   .ci-val { font-size: 30px; }
 }
+
+/* ---------- Fase 5 ---------- */
+.badge {
+  min-width: 18px; height: 18px; border-radius: 9px; background: var(--bad); color: #fff; font-size: 11px; font-weight: 700;
+  display: inline-grid; place-items: center; padding: 0 5px; box-sizing: border-box;
+}
+.tab-badge { position: absolute; top: 6px; left: calc(50% + 18px); }
+.card { background: var(--card); box-shadow: var(--shadow); border-radius: 20px; }
+.seg-n { display: grid; background: var(--card2); border-radius: 10px; padding: 2px; gap: 2px; }
+.seg-n button { border: 0; cursor: pointer; border-radius: 8px; padding: 7px 6px; font-size: 13px; font-weight: 600; background: transparent; color: var(--muted); white-space: nowrap; }
+.seg-n button[aria-pressed="true"] { background: var(--bg); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+.h2 { font-size: 20px; font-weight: 700; }
+.list-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 13px 0; }
+.list-row + .list-row { border-top: 1px solid var(--line); }
+.big-num { font-family: var(--num); font-weight: 700; letter-spacing: -0.02em; }
+.unit { font-size: 14px; color: var(--muted); font-weight: 600; margin-left: 3px; }
+.prog-cols { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (min-width: 1100px) { .prog-cols { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.zone-in {
+  position: relative; text-align: left; border: 0; cursor: pointer; background: var(--card); box-shadow: var(--shadow); border-radius: 16px;
+  padding: 11px 12px; display: flex; flex-direction: column; gap: 3px; min-width: 0; min-height: 68px; touch-action: manipulation;
+}
+.some-next { position: sticky; bottom: calc(78px + env(safe-area-inset-bottom)); z-index: 6; }
+.some-edit { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; align-items: start; }
+.some-preview { max-width: 340px; width: 100%; margin: 0 auto; border-radius: 18px; }
+@media (min-width: 900px) {
+  .some-next { bottom: 24px; }
+  .some-edit { grid-template-columns: minmax(0, 380px) minmax(0, 1fr); }
+  .some-preview { max-width: 380px; }
+}

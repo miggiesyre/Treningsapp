@@ -1,5 +1,6 @@
 import 'server-only';
 import { osloDate, parseYmd, weekDay, ymd } from '@/lib/plan/dates';
+import { effKind } from '@/lib/plan/changes';
 import { volOf, type Prog, type Template } from '@/lib/plan/library';
 import type { Sport } from '@/lib/plan/sports';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -61,12 +62,12 @@ export async function matchDay(athleteId: string, date: string) {
   const ps = planned.data ?? [];
   const ids = ps.map((p) => p.id);
   const changes = ids.length
-    ? ((await db.from('session_changes').select('planned_session_id, kind, to_date, created_at').in('planned_session_id', ids).order('created_at')).data ?? [])
+    ? ((await db.from('session_changes').select('planned_session_id, kind, to_date, coach_decision, created_at').in('planned_session_id', ids).order('created_at')).data ?? [])
     : [];
-  const last: Record<string, { kind: string; to_date: string | null }> = {};
+  const last: Record<string, { kind: 'moved' | 'shortened' | 'indoor' | 'skipped'; to_date: string | null; coach_decision: string | null }> = {};
   changes.forEach((c) => (last[c.planned_session_id] = c));
-  const effective = (p: (typeof ps)[number]) => (last[p.id]?.kind === 'moved' && last[p.id]?.to_date ? last[p.id].to_date! : p.date);
-  const cands = ps.filter((p) => effective(p) === date && last[p.id]?.kind !== 'skipped');
+  const effective = (p: (typeof ps)[number]) => (effKind(last[p.id]) === 'moved' && last[p.id]?.to_date ? last[p.id].to_date! : p.date);
+  const cands = ps.filter((p) => effective(p) === date && effKind(last[p.id]) !== 'skipped');
   if (!dayActs.length && !cands.some((p) => p.status === 'done')) return;
 
   const tIds = [...new Set(cands.map((p) => p.template_id))];

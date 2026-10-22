@@ -1,5 +1,10 @@
-import { PageTitle } from '@/components/app-shell';
+import { ClientOnly } from '@/components/client-only';
+import { Miguel } from '@/components/coach/miguel';
 
 export default function Page() {
-  return <PageTitle title="Miguel" />;
+  return (
+    <ClientOnly>
+      <Miguel />
+    </ClientOnly>
+  );
 }
