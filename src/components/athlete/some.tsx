@@ -233,6 +233,7 @@ function Editor({ src, picked, common, onBack }: { src: Src; picked: Act[]; comm
   const [custom, setCustom] = useState('#3E5C6E');
   const [ov, setOv] = useState<Ov>({});
   const [order, setOrder] = useState<string[] | null>(null);
+  const [hid, setHid] = useState<string[]>([]);
   const [selEl, setSelEl] = useState<string | null>(null);
   const [panel, setPanel] = useState<'format' | 'mal' | 'innhold' | 'farger' | 'lag'>('mal');
   const [out, setOut] = useState<'png' | 'video' | 'both'>('png');
@@ -285,8 +286,13 @@ function Editor({ src, picked, common, onBack }: { src: Src; picked: Act[]; comm
   };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const base = useMemo(() => mkScene(tpl, W, H, dd), [tpl, W, H, JSON.stringify(dd), fontsReady]);
-  const els: El[] = ordered(base).map((e: El) => ({ ...e, ...(ov[e.id] || {}) }));
-  const ids = els.map((e) => e.id);
+  const all: El[] = ordered(base).map((e: El) => ({ ...e, ...(ov[e.id] || {}) }));
+  const els = all.filter((e) => !hid.includes(e.id));
+  const ids = all.map((e) => e.id);
+  const toggleHid = (id: string) => {
+    setHid((h) => (h.includes(id) ? h.filter((x) => x !== id) : [...h, id]));
+    setSelEl(null);
+  };
   const mv = (i: number, dir: number) => {
     const j = i + dir;
     if (j < 0 || j >= ids.length) return;
@@ -297,6 +303,7 @@ function Editor({ src, picked, common, onBack }: { src: Src; picked: Act[]; comm
   const resetLayout = () => {
     setOv({});
     setOrder(null);
+    setHid([]);
     setSelEl(null);
   };
 
@@ -385,6 +392,11 @@ function Editor({ src, picked, common, onBack }: { src: Src; picked: Act[]; comm
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: 'var(--muted)' }}>
           <span>{selEl ? `${(EL_NAMES as Record<string, string>)[selEl] || selEl} · dra eller klyp` : 'Trykk et element for å flytte det'}</span>
+          {selEl && (
+            <button onClick={() => toggleHid(selEl)} style={{ border: 0, background: 'none', color: 'var(--danger, #FF3B30)', fontWeight: 600, cursor: 'pointer', padding: 4 }}>
+              Skjul
+            </button>
+          )}
           {selEl && (
             <button onClick={() => setSelEl(null)} style={{ border: 0, background: 'none', color: 'var(--ink)', fontWeight: 600, cursor: 'pointer', padding: 4 }}>
               Ferdig
@@ -528,13 +540,16 @@ function Editor({ src, picked, common, onBack }: { src: Src; picked: Act[]; comm
         {panel === 'lag' && (
           <>
             <div className="card" style={{ borderRadius: 16, padding: '0 6px 0 14px' }}>
-              {els
-                .map((e, i) => ({ id: e.id as string, i }))
+              {all
+                .map((e, i) => ({ id: e.id as string, i, off: hid.includes(e.id) }))
                 .reverse()
                 .map((l, j) => (
                   <div key={l.id} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 0', borderTop: j ? '1px solid var(--line)' : 'none' }}>
-                    <button onClick={() => setSelEl(l.id)} style={{ flex: 1, textAlign: 'left', border: 0, background: selEl === l.id ? 'var(--card2)' : 'transparent', borderRadius: 8, padding: '9px 8px', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>
+                    <button onClick={() => !l.off && setSelEl(l.id)} style={{ flex: 1, textAlign: 'left', border: 0, background: selEl === l.id ? 'var(--card2)' : 'transparent', borderRadius: 8, padding: '9px 8px', fontSize: 15, fontWeight: 600, cursor: 'pointer', opacity: l.off ? 0.4 : 1, textDecoration: l.off ? 'line-through' : 'none' }}>
                       {(EL_NAMES as Record<string, string>)[l.id] || l.id}
+                    </button>
+                    <button onClick={() => toggleHid(l.id)} aria-label={`${l.off ? 'Vis' : 'Skjul'} ${(EL_NAMES as Record<string, string>)[l.id] || l.id}`} style={{ border: 0, background: 'var(--card2)', borderRadius: 999, padding: '6px 12px', fontSize: 13, fontWeight: 600, cursor: 'pointer', color: 'var(--ink)', minWidth: 58 }}>
+                      {l.off ? 'Vis' : 'Skjul'}
                     </button>
                     <button onClick={() => mv(l.i, 1)} title="Opp" aria-label="Flytt opp" style={{ width: 36, height: 36, border: 0, background: 'none', fontSize: 16, cursor: 'pointer', color: 'var(--muted)' }}>
                       ↑
