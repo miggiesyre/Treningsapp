@@ -40,6 +40,20 @@ exception when others then
   insert into rls_results values ('Miguel cannot write another athlete''s data', 'PASS');
 end $$;
 
+do $$ begin
+  perform public.copy_plan_week(auth.uid(), 1, array[2]);
+  insert into rls_results values ('Miguel cannot copy plan weeks (fase 2)', 'FAIL');
+exception when others then
+  insert into rls_results values ('Miguel cannot copy plan weeks (fase 2)', 'PASS');
+end $$;
+
+do $$ begin
+  insert into public.day_focus (athlete_id, date, text) values (auth.uid(), '2026-10-26', 'Test');
+  insert into rls_results values ('Miguel cannot write Dagens fokus (fase 2)', 'FAIL');
+exception when others then
+  insert into rls_results values ('Miguel cannot write Dagens fokus (fase 2)', 'PASS');
+end $$;
+
 -- ---------- As Ruben ----------
 reset role;
 select set_config('request.jwt.claims',
@@ -50,6 +64,22 @@ insert into rls_results select 'Ruben sees Miguel''s settings',
   case when (select count(*) from public.settings) = 1 then 'PASS' else 'FAIL' end;
 insert into rls_results select 'Ruben cannot see the stranger',
   case when (select count(*) from public.profiles where id = '00000000-0000-0000-0000-0000000000aa') = 0 then 'PASS' else 'FAIL' end;
+
+do $$ begin
+  insert into public.day_focus (athlete_id, date, text)
+    values ((select athlete_id from public.coach_athlete limit 1), '2026-10-26', 'Test')
+    on conflict (athlete_id, date) do update set text = excluded.text;
+  insert into rls_results values ('Ruben can write Miguel''s Dagens fokus (fase 2)', 'PASS');
+exception when others then
+  insert into rls_results values ('Ruben can write Miguel''s Dagens fokus (fase 2)', 'FAIL');
+end $$;
+
+do $$ begin
+  insert into public.day_focus (athlete_id, date, text) values ('00000000-0000-0000-0000-0000000000aa', '2026-10-26', 'Test');
+  insert into rls_results values ('Ruben cannot plan for the stranger (fase 2)', 'FAIL');
+exception when others then
+  insert into rls_results values ('Ruben cannot plan for the stranger (fase 2)', 'PASS');
+end $$;
 
 -- ---------- Logged out ----------
 reset role;

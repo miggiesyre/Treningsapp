@@ -3,7 +3,8 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
-const PATTERNS = [/service_role/, /sb_secret_/, /SUPABASE_SECRET_KEY/, /STRAVA_CLIENT_SECRET/, /GARMIN_PASSWORD/, /TOKEN_ENC_KEY/];
+// sb_secret_ alone appears in supabase-js (key-prefix check); a real key has characters after it.
+const PATTERNS = [/service_role/, /sb_secret_[A-Za-z0-9_-]{8,}/, /SUPABASE_SECRET_KEY/, /STRAVA_CLIENT_SECRET/, /GARMIN_PASSWORD/, /TOKEN_ENC_KEY/];
 const secret = process.env.SUPABASE_SECRET_KEY;
 if (secret) PATTERNS.push(new RegExp(secret.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
 

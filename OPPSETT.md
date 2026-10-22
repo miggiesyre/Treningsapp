@@ -1,4 +1,6 @@
-# Oppsett – fase 1 (det du må gjøre selv)
+# Oppsett (det du må gjøre selv)
+
+Fase 1: steg 1–4. Fase 2 (Rubens ukeplan): steg 5.
 
 Alt her er gratis. Regn med ca. 1 time første gang.
 **Gyldne regel:** Nøkler og passord limes bare inn i Supabase, Vercel eller fila `.env.local` på Macen din. Aldri i chat, aldri i koden.
@@ -115,6 +117,26 @@ Ha fanen åpen – du trenger dem i steg 3.
 - [ ] **iPhone:** åpne domenet i Safari → Del-knappen → *Legg til på Hjem-skjerm*. Ikonet er logoen, og appen åpner i fullskjerm, mørk.
 
 Fungerer alt? Si fra, så starter vi fase 2 (Rubens ukeplan).
+
+---
+
+## 5. Fase 2 – Rubens ukeplan
+
+Gjøres én gang. Begge filene kan kjøres på nytt uten å ødelegge noe.
+
+1. Supabase → **SQL Editor** → *New query* → lim inn hele `supabase/migrations/0002_coach_plan.sql` → **Run**. Skal si «Success».
+2. *New query* → lim inn hele `supabase/seed_plan.sql` → **Run**. Nederst skal du se omtrent: templates 12 · planned 312 · progression_rows 130 · blocks 7 · focus_days 182.
+3. *New query* → lim inn `supabase/tests/rls_test.sql` → **Run**. Alle linjene skal si **PASS**.
+
+### Test fase 2 (logg inn som Ruben)
+- [ ] **Ukeplan** viser «Uke 1 · Grunnlag 1 · 26. okt – 1. nov» med økter hver dag. ‹ › blar uker (sveip på mobil).
+- [ ] Svømmeøktene er skjult før januar, og linja «Svømming pauset til januar (skulder)» vises.
+- [ ] Skriv i «Dagens fokus» på en dag, bytt uke og tilbake → teksten er lagret.
+- [ ] Trykk på «Rolig langtur» → still hjulet, velg «+5 km», «Alle kommende uker» → neste uke viser 5 km mer.
+- [ ] «+» på en dag → Sykkel → Ny økt → bygg med «+ Del» → «Bare denne dagen». Økta dukker opp.
+- [ ] Dra en økt til en annen dag (PC). På mobil: trykk økta → velg dag under «Dag» → lagre.
+- [ ] «Kopier uke til…» → «Neste uke» → Kopier. Merk: øktene i ukene du velger blir **erstattet**.
+- [ ] **Økter**-fanen: «+ Ny økt» lagrer i biblioteket. Trykk en innebygd økt → endre notat/innendørsalternativ.
 
 ---
 

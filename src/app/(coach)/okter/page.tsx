@@ -1,5 +1,5 @@
-import { PageTitle } from '@/components/app-shell';
+import { Library } from '@/components/coach/library';
 
 export default function Page() {
-  return <PageTitle title="Økter" />;
+  return <Library />;
 }
