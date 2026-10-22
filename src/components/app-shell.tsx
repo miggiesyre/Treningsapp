@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { NAV, type Role, type Theme } from '@/lib/roles';
 import { SettingsSheet } from './settings-sheet';
+import { ToastProvider } from './toast';
 
 const SettingsCtx = createContext<() => void>(() => {});
 export const useOpenSettings = () => useContext(SettingsCtx);
@@ -23,6 +24,7 @@ export function AppShell({ role, name, theme, children }: { role: Role; name: st
 
   return (
     <SettingsCtx.Provider value={open}>
+      <ToastProvider>
       <div className="shell">
         <aside className="side">
           <div className="side-logo">
@@ -59,6 +61,7 @@ export function AppShell({ role, name, theme, children }: { role: Role; name: st
         </nav>
       </div>
       {settingsOpen && <SettingsSheet theme={theme} onClose={() => setSettingsOpen(false)} />}
+      </ToastProvider>
     </SettingsCtx.Provider>
   );
 }

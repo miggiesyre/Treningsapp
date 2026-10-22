@@ -4,6 +4,8 @@ import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { isTheme, type Theme } from '@/lib/roles';
 import { isLimited, recordAttempt } from '@/lib/rate-limit';
+import { createClient as createPlainClient } from '@supabase/supabase-js';
+import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from '@/lib/supabase/env';
 import { createClient } from '@/lib/supabase/server';
 
 export type AuthState = { msg?: string; email?: string };
@@ -42,8 +44,12 @@ async function forgot(email: string): Promise<AuthState> {
 
   const h = await headers();
   const origin = `${h.get('x-forwarded-proto') ?? 'https'}://${h.get('host')}`;
-  const supabase = await createClient();
-  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${origin}/auth/callback?next=/nytt-passord` });
+  // Implicit flow: the default Supabase e-mail link then works on any device (tokens arrive in the
+  // URL hash on /login, picked up by <HashSession>). PKCE would only work in the requesting browser.
+  const supabase = createPlainClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+    auth: { flowType: 'implicit', persistSession: false, autoRefreshToken: false },
+  });
+  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${origin}/login` });
   if (error) console.error('reset email failed', error.message);
   return sent;
 }

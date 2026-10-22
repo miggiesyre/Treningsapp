@@ -1,3 +1,4 @@
+import { HashSession } from './hash-session';
 import { LoginForm } from './login-form';
 
 const NOTICES: Record<string, string> = {
@@ -10,6 +11,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   return (
     <div className="lg">
       <LoginForm notice={e ? NOTICES[e] : undefined} />
+      <HashSession />
     </div>
   );
 }
