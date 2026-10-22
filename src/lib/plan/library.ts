@@ -14,6 +14,7 @@ export type Template = {
   id: string;
   builtin: string | null;
   sport: Sport;
+  tag: string | null;
   name: string;
   parts: Part[];
   exercises: (BuiltExercise | BuiltinExercise)[];
