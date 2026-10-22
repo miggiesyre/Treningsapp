@@ -134,12 +134,13 @@ input:focus, textarea:focus { outline: none; }
   padding-left: max(8px, env(safe-area-inset-left)); padding-right: max(8px, env(safe-area-inset-right));
 }
 .tab {
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 52px;
-  color: var(--muted); text-decoration: none; position: relative; font-size: 13px; font-weight: 500;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 56px;
+  color: var(--muted); text-decoration: none; position: relative; font-size: 11.5px; font-weight: 600; letter-spacing: .01em;
 }
-.tab::before { content: ""; width: 22px; height: 3px; border-radius: 2px; background: transparent; }
-.tab[aria-current="page"] { color: var(--ink); font-weight: 600; }
-.tab[aria-current="page"]::before { background: var(--ink); }
+.tab-ic { width: 54px; height: 30px; border-radius: 15px; display: grid; place-items: center; transition: background .2s, color .2s; }
+.tab[aria-current="page"] { color: var(--ink); }
+.tab[aria-current="page"] .tab-ic { background: color-mix(in oklch, #0A84FF 22%, transparent); color: #0A84FF; }
+.tab:active .tab-ic { transform: scale(.94); }
 
 @media (min-width: 900px) {
   .side { display: flex; }
@@ -239,18 +240,25 @@ input:focus, textarea:focus { outline: none; }
 
 /* ---------- Athlete: Hjem, Trening, økt, styrkelogg ---------- */
 .home { display: flex; flex-direction: column; gap: 26px; max-width: 720px; width: 100%; margin: 0 auto; }
-.home-brand { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 2px 0; margin: -12px 0; }
+.home-head { display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); align-items: center; gap: 10px; }
+.home-date { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.home-dow { font-size: 15px; font-weight: 600; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+.home-dm { white-space: nowrap; font-size: 20px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.05; }
+.home-head .home-logo { justify-self: end; height: 58px; max-width: 100%; }
+.home-head .gear { width: 30px; height: 30px; box-shadow: none; }
+.home-head .gear span { width: 16px; height: 16px; }
+.ci-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
 .home-logo { height: 74px; width: auto; max-width: 58%; display: block; min-width: 0; }
-.home-ring { position: relative; width: 104px; height: 104px; flex-shrink: 0; }
+.home-ring { position: relative; width: 112px; height: 112px; flex-shrink: 0; }
 .ring-num {
   font-family: var(--num); font-size: 30px; font-weight: 800; margin: 3px 0 2px;
   background: linear-gradient(135deg, #0A84FF, #12E5C4); -webkit-background-clip: text; background-clip: text; color: transparent;
 }
 .ci-tile {
-  text-align: left; border: 0; cursor: pointer; box-shadow: var(--shadow); border-radius: 16px; padding: 10px 9px 9px;
+  text-align: left; border: 0; cursor: pointer; box-shadow: var(--shadow); border-radius: 18px; padding: 13px 14px 12px;
   display: flex; flex-direction: column; gap: 3px; position: relative; min-width: 0;
 }
-.ci-val { font-family: var(--num); font-size: 21px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.05; }
+.ci-val { font-family: var(--num); font-size: 30px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.05; }
 .today-card {
   text-align: left; border: 0; cursor: pointer; box-shadow: var(--shadow); border-radius: 18px; padding: 13px 15px;
   display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--ink);
@@ -276,8 +284,10 @@ input:focus, textarea:focus { outline: none; }
 @media (min-width: 900px) {
   .wide-only { display: inline; }
   .narrow-only { display: none; }
-  .home-brand { gap: 28px; }
-  .home-logo { height: 100px; }
+  .home-head .home-logo { height: 96px; }
+  .home-dm { font-size: 34px; }
+  .home-dow { font-size: 17px; }
+  .ci-grid { grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; }
   .home-ring { width: 132px; height: 132px; }
   .ci-val { font-size: 30px; }
 }
@@ -287,7 +297,7 @@ input:focus, textarea:focus { outline: none; }
   min-width: 18px; height: 18px; border-radius: 9px; background: var(--bad); color: #fff; font-size: 11px; font-weight: 700;
   display: inline-grid; place-items: center; padding: 0 5px; box-sizing: border-box;
 }
-.tab-badge { position: absolute; top: 6px; left: calc(50% + 18px); }
+.tab-badge { position: absolute; top: 4px; left: calc(50% + 14px); }
 .card { background: var(--card); box-shadow: var(--shadow); border-radius: 20px; }
 .seg-n { display: grid; background: var(--card2); border-radius: 10px; padding: 2px; gap: 2px; }
 .seg-n button { border: 0; cursor: pointer; border-radius: 8px; padding: 7px 6px; font-size: 13px; font-weight: 600; background: transparent; color: var(--muted); white-space: nowrap; }

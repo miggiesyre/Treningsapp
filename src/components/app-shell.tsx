@@ -58,6 +58,9 @@ export function AppShell({ role, name, theme, children }: { role: Role; name: st
         <nav className="tabs">
           {items.map((n) => (
             <Link key={n.href} href={n.href} className="tab" aria-current={n.active ? 'page' : undefined}>
+              <span className="tab-ic">
+                <NavIcon href={n.href} />
+              </span>
               {n.label}
               {n.href === '/varsler' && alerts > 0 && <span className="badge tab-badge">{alerts}</span>}
             </Link>
@@ -103,4 +106,24 @@ function useOpenAlerts(on: boolean) {
     };
   }, [on]);
   return n;
+}
+
+const ICON: Record<string, string> = {
+  '/hjem': 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z',
+  '/trening': 'M3 12h4l3-8 4 16 3-8h4',
+  '/soner': 'M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z',
+  '/progresjon': 'M3 20h18M5 16l4-5 4 3 6-8',
+  '/some': 'M4 8h3l2-3h6l2 3h3v11H4zM12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
+  '/ukeplan': 'M4 5h16v15H4zM4 10h16M9 3v4M15 3v4',
+  '/okter': 'M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01',
+  '/varsler': 'M6 16V11a6 6 0 0 1 12 0v5l2 2H4zM10 21h4',
+  '/miguel': 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0',
+};
+
+function NavIcon({ href }: { href: string }) {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d={ICON[href] ?? ICON['/hjem']} />
+    </svg>
+  );
 }

@@ -235,7 +235,7 @@ function Editor({ src, picked, common, onBack }: { src: Src; picked: Act[]; comm
   const [order, setOrder] = useState<string[] | null>(null);
   const [hid, setHid] = useState<string[]>([]);
   const [selEl, setSelEl] = useState<string | null>(null);
-  const [panel, setPanel] = useState<'format' | 'mal' | 'innhold' | 'farger' | 'lag'>('mal');
+  const [panel, setPanel] = useState<Step>('mal');
   const [out, setOut] = useState<'png' | 'video' | 'both'>('png');
   const [playKey, setPlayKey] = useState(0);
   const [busy, setBusy] = useState('');
@@ -407,17 +407,10 @@ function Editor({ src, picked, common, onBack }: { src: Src; picked: Act[]; comm
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: wide ? 14 : 10, minWidth: 0, fontSize: wide ? undefined : 14 }}>
-        <div className="seg-n" style={{ gridTemplateColumns: 'repeat(5,minmax(0,1fr))', borderRadius: 12, padding: 3 }}>
-          {(
-            [
-              ['format', 'Format'],
-              ['mal', 'Mal'],
-              ['innhold', 'Innhold'],
-              ['farger', 'Farger'],
-              ['lag', 'Lag'],
-            ] as const
-          ).map(([k, l]) => (
-            <button key={k} aria-pressed={panel === k} onClick={() => setPanel(k)} style={{ padding: '9px 2px' }}>
+        <div className="seg-n" style={{ gridTemplateColumns: 'repeat(6,minmax(0,1fr))', borderRadius: 12, padding: 3 }}>
+          {STEPS.map(([k, l], i) => (
+            <button key={k} aria-pressed={panel === k} onClick={() => setPanel(k)} style={{ padding: wide ? '9px 2px' : '8px 0', fontSize: wide ? undefined : 12.5 }}>
+              {wide && <span style={{ opacity: 0.55, marginRight: 3 }}>{i + 1}</span>}
               {l}
             </button>
           ))}
@@ -567,8 +560,15 @@ function Editor({ src, picked, common, onBack }: { src: Src; picked: Act[]; comm
           </>
         )}
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingTop: 6, borderTop: '1px solid var(--line)' }}>
-          <div className="seg-n" style={{ gridTemplateColumns: 'repeat(3,1fr)', marginTop: 8 }}>
+        {panel !== 'del' && (
+          <button className="btn-ink" style={{ height: bh, fontSize: 15, fontWeight: 700, marginTop: 4 }} onClick={() => setPanel(STEPS[STEPS.findIndex(([k]) => k === panel) + 1][0])}>
+            Neste: {STEPS[STEPS.findIndex(([k]) => k === panel) + 1][1]} →
+          </button>
+        )}
+
+        {panel === 'del' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div className="seg-n" style={{ gridTemplateColumns: 'repeat(3,1fr)' }}>
             {(
               [
                 ['png', 'Bilde'],
@@ -598,6 +598,7 @@ function Editor({ src, picked, common, onBack }: { src: Src; picked: Act[]; comm
           </div>
           {busy && <span style={{ textAlign: 'center', fontSize: 14, color: 'var(--muted)' }}>{busy}</span>}
         </div>
+        )}
       </div>
     </div>
   );
@@ -611,6 +612,16 @@ function Thumb({ tpl, W, H, d, o, tw, v }: { tpl: string; W: number; H: number; 
   });
   return <canvas ref={ref} width={tw * 2} height={Math.round((tw * 2 * H) / W)} style={{ width: '100%', height: '100%', display: 'block' }} data-v={v} />;
 }
+
+type Step = 'mal' | 'format' | 'innhold' | 'farger' | 'lag' | 'del';
+const STEPS: [Step, string][] = [
+  ['mal', 'Mal'],
+  ['format', 'Format'],
+  ['innhold', 'Innhold'],
+  ['farger', 'Farger'],
+  ['lag', 'Lag'],
+  ['del', 'Del'],
+];
 
 type CanvasProps = { W: number; H: number; els: El[]; o: Opts; sel: string | null; playKey: number; onSelect: (id: string | null) => void; onCommit: (id: string, v: { dx: number; dy: number; s: number }) => void };
 type Pt = { x: number; y: number };
