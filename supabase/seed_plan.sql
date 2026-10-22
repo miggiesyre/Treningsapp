@@ -103,10 +103,22 @@ begin
     ) as b(d, pos, builtin, time_label)
     join public.session_templates t on t.coach_id = coach and t.builtin = b.builtin;
   end if;
+
+  -- "Dagens fokus" per weekday from the prototype. Ruben overwrites them in Ukeplan.
+  insert into public.day_focus (athlete_id, date, text)
+  select athlete, start + (w - 1) * 7 + f.d, f.text
+  from generate_series(1, 26) w
+  cross join (values
+    (0, 'Fueling og utholdenhet'), (1, 'Styrke og teknikk'), (2, 'Terskel med kontroll'),
+    (3, 'Overganger og racefølelse'), (4, 'Styrke og stabilitet'), (5, 'Kraft på sykkelen'),
+    (6, 'Tung gir og restitusjon')
+  ) as f(d, text)
+  on conflict do nothing;
 end $$;
 
 select
   (select count(*) from public.session_templates) as templates,
   (select count(*) from public.planned_sessions) as planned,
   (select count(*) from public.progression) as progression_rows,
-  (select count(*) from public.blocks) as blocks;
+  (select count(*) from public.blocks) as blocks,
+  (select count(*) from public.day_focus) as focus_days;

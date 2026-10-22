@@ -1,5 +1,5 @@
-import { PageTitle } from '@/components/app-shell';
+import { WeekPlan } from '@/components/coach/week-plan';
 
 export default function Page() {
-  return <PageTitle title="Ukeplan" />;
+  return <WeekPlan />;
 }

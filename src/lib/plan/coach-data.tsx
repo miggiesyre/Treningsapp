@@ -55,7 +55,7 @@ export function CoachProvider({ athleteId, coachId, children }: { athleteId: str
   const [ready, setReady] = useState(false);
 
   const reloadTemplates = useCallback(async () => {
-    const { data } = await supabase.from('session_templates').select('*').eq('coach_id', coachId).order('created_at');
+    const { data } = await supabase.from('session_templates').select('*').eq('coach_id', coachId).order('builtin', { nullsFirst: false }).order('created_at');
     setTemplates((data ?? []) as Template[]);
   }, [supabase, coachId]);
 
