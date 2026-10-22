@@ -164,3 +164,62 @@ export async function saveTemplateText(db: DB, id: string, note: string, alt: st
 export async function addComment(db: DB, athleteId: string, authorId: string, plannedId: string, body: string) {
   check(await db.from('comments').insert({ athlete_id: athleteId, author_id: authorId, planned_session_id: plannedId, body: body.slice(0, 2000) }));
 }
+
+// ---------- Varsler: Ruben decides on Miguel's changes ----------
+export type Alert = {
+  id: string;
+  planned_session_id: string;
+  kind: 'moved' | 'shortened' | 'indoor' | 'skipped';
+  reason: string | null;
+  to_date: string | null;
+  coach_decision: string | null;
+  decided_at: string | null;
+  created_at: string;
+  planned: { id: string; date: string; template_id: string } | null;
+};
+
+export async function loadAlerts(db: DB, athleteId: string, limit = 60): Promise<Alert[]> {
+  const { data } = await db
+    .from('session_changes')
+    .select('id, planned_session_id, kind, reason, to_date, coach_decision, decided_at, created_at')
+    .eq('athlete_id', athleteId)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  const rows = (data ?? []) as Omit<Alert, 'planned'>[];
+  const ids = [...new Set(rows.map((r) => r.planned_session_id))];
+  const ps = ids.length ? ((await db.from('planned_sessions').select('id, date, template_id').in('id', ids)).data ?? []) : [];
+  const byId = Object.fromEntries(ps.map((p) => [p.id, p]));
+  return rows.map((r) => ({ ...r, planned: byId[r.planned_session_id] ?? null }));
+}
+
+export async function countOpenAlerts(db: DB, athleteId: string) {
+  const { count } = await db.from('session_changes').select('id', { count: 'exact', head: true }).eq('athlete_id', athleteId).is('decided_at', null);
+  return count ?? 0;
+}
+
+/** accept: just mark handled. drop: the session is off. move/double: new day. replace: another template. */
+export async function resolveAlert(
+  db: DB,
+  athleteId: string,
+  a: Alert,
+  action: 'accept' | 'drop' | 'move' | 'double' | 'replace',
+  arg?: { date?: string; templateId?: string },
+) {
+  if ((action === 'move' || action === 'double') && arg?.date) {
+    const position = await nextPos(db, athleteId, arg.date);
+    check(await db.from('planned_sessions').update({ date: arg.date, position }).eq('id', a.planned_session_id));
+  }
+  if (action === 'replace' && arg?.templateId) {
+    check(await db.from('planned_sessions').update({ template_id: arg.templateId, value_override: null }).eq('id', a.planned_session_id));
+  }
+  check(
+    await db
+      .from('session_changes')
+      .update({
+        coach_decision: action === 'accept' ? null : action,
+        decision_data: arg ?? null,
+        decided_at: new Date().toISOString(),
+      })
+      .eq('id', a.id),
+  );
+}

@@ -5,6 +5,7 @@ import { Chips, CloseBtn, Sheet, SportIcon } from '@/components/sheet';
 import { useToast } from '@/components/toast';
 import { Wheel } from '@/components/wheel';
 import { addComment, removeSession, saveEdit, type Draft } from '@/lib/plan/actions';
+import { DECISION_TEXT } from '@/lib/plan/changes';
 import { useCoach, type Change, type Planned } from '@/lib/plan/coach-data';
 import { DAYS, SD, dateOf, fmtD, parseYmd, weekDay } from '@/lib/plan/dates';
 import { ALT, mainOf, type BuiltExercise } from '@/lib/plan/library';
@@ -61,8 +62,16 @@ export function EditSheet({
     const { data } = await supabase.from('comments').select('id, author_id, body, created_at').eq('planned_session_id', planned.id).order('created_at');
     setMsgs((data ?? []) as Msg[]);
   }, [supabase, planned.id]);
+  // New comments show up without reloading: refresh every 10 s while the page is visible.
   useEffect(() => {
     loadMsgs();
+    const t = setInterval(() => document.visibilityState === 'visible' && loadMsgs(), 10000);
+    const onVis = () => document.visibilityState === 'visible' && loadMsgs();
+    document.addEventListener('visibilitychange', onVis);
+    return () => {
+      clearInterval(t);
+      document.removeEventListener('visibilitychange', onVis);
+    };
   }, [loadMsgs]);
 
   const alts: string[] = [];
@@ -70,6 +79,9 @@ export function EditSheet({
 
   const thread = [
     ...changes.map((c) => ({ key: 'c' + c.created_at, sys: true, mine: false, text: `Miguel ${CHANGE_TEXT[c.kind]}${c.reason ? ' · ' + c.reason : ''}`, at: c.created_at })),
+    ...changes
+      .filter((c) => c.decided_at)
+      .map((c) => ({ key: 'd' + c.id, sys: true, mine: false, text: `Du: ${c.coach_decision ? DECISION_TEXT[c.coach_decision] : 'OK'}`, at: c.decided_at! })),
     ...msgs.map((x) => ({ key: x.id, sys: false, mine: x.author_id === coachId, text: x.body, at: x.created_at })),
   ].sort((a, b) => a.at.localeCompare(b.at));
 

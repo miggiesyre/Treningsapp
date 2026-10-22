@@ -2,6 +2,7 @@
 import type { Change, Planned } from './coach-data';
 import { SD, parseYmd, weekDay } from './dates';
 import { describe, type Prog, type Template } from './library';
+import { DECISION_TEXT, effKind } from './changes';
 import { SP, SST, type VisualState } from './sports';
 
 /** Swim sessions before this date are paused (settings.swim_paused_until). */
@@ -13,7 +14,7 @@ export function chipView(p: Planned, t: Template, prog: Prog, change: Change | u
   const at = weekDay(parseYmd(p.date));
   const past = (at.w - 1) * 7 + at.d < (now.w - 1) * 7 + now.d;
   const done = p.status === 'done';
-  const kind = change?.kind;
+  const kind = effKind(change);
   const flag =
     kind === 'skipped'
       ? `Hoppet over${change?.reason ? ` · ${change.reason}` : ''}`
@@ -23,7 +24,9 @@ export function chipView(p: Planned, t: Template, prog: Prog, change: Change | u
           ? 'Innendørs'
           : kind === 'shortened'
             ? 'Kort 60 %'
-            : done
+            : change?.coach_decision && change.coach_decision !== 'drop'
+              ? DECISION_TEXT[change.coach_decision]
+              : done
               ? '✓ Strava'
               : t.is_optional
                 ? 'Valgfri'

@@ -25,6 +25,8 @@ export type Change = {
   reason: string | null;
   to_date: string | null;
   coach_decision: string | null;
+  decision_data?: Record<string, unknown> | null;
+  decided_at?: string | null;
   created_at: string;
 };
 export type Own = { id: string; date: string; sport: string; title: string | null; duration_min: number | null; distance_km: number | null; comment: string | null };
@@ -123,7 +125,7 @@ export function CoachProvider({ athleteId, coachId, children }: { athleteId: str
       const planned = (p.data ?? []) as Planned[];
       const ids = planned.map((r) => r.id);
       const c = ids.length
-        ? await supabase.from('session_changes').select('id, planned_session_id, kind, reason, to_date, coach_decision, created_at').in('planned_session_id', ids).order('created_at')
+        ? await supabase.from('session_changes').select('id, planned_session_id, kind, reason, to_date, coach_decision, decision_data, decided_at, created_at').in('planned_session_id', ids).order('created_at')
         : { data: [] };
       return {
         planned,

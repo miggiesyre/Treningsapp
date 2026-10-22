@@ -1,5 +1,10 @@
-import { PageTitle } from '@/components/app-shell';
+import { Progress } from '@/components/athlete/progress';
+import { ClientOnly } from '@/components/client-only';
 
 export default function Page() {
-  return <PageTitle title="Progresjon" />;
+  return (
+    <ClientOnly>
+      <Progress />
+    </ClientOnly>
+  );
 }

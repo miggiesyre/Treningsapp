@@ -1,5 +1,10 @@
-import { PageTitle } from '@/components/app-shell';
+import { ClientOnly } from '@/components/client-only';
+import { Alerts } from '@/components/coach/alerts';
 
 export default function Page() {
-  return <PageTitle title="Varsler" />;
+  return (
+    <ClientOnly>
+      <Alerts />
+    </ClientOnly>
+  );
 }
