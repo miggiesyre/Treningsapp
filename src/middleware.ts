@@ -57,6 +57,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|logo.svg|icon-.*\\.png|manifest.webmanifest|robots.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
+    // api/strava/webhook is called by Strava without a session; it re-fetches everything itself.
+    '/((?!_next/static|_next/image|api/strava/webhook|favicon.ico|logo.svg|icon-.*\\.png|manifest.webmanifest|robots.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
   ],
 };

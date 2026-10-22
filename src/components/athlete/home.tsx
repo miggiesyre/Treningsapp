@@ -7,9 +7,9 @@ import { useOpenSettings } from '@/components/app-shell';
 import { Sheet, SheetHead, SportIcon } from '@/components/sheet';
 import { useToast } from '@/components/toast';
 import { Wheel } from '@/components/wheel';
-import { MONL, RACE, sessionView, weekVolume, type Entry } from '@/lib/plan/athlete';
+import { MONL, RACE, activityStats, sessionView, weekVolume, type Entry } from '@/lib/plan/athlete';
 import { loadCheckins, saveCheckin, type CiKey, type CiRow } from '@/lib/plan/athlete-actions';
-import { blockOf, usePlan, type Own } from '@/lib/plan/coach-data';
+import { blockOf, usePlan, type Activity, type Own } from '@/lib/plan/coach-data';
 import { DAYS, PLAN_START, SD, WEEKS, currentWeek, dateOf, fmtD, today, ymd } from '@/lib/plan/dates';
 import { nf, range } from '@/lib/plan/library';
 import { ICONS, SP, TINT, type Sport } from '@/lib/plan/sports';
@@ -57,6 +57,24 @@ export function Home() {
   const [own, setOwn] = useState<Own | 'new' | null>(null);
   const todayKey = ymd(now);
 
+  // Back from Strava's consent page.
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get('strava');
+    if (!q) return;
+    toast(
+      q === 'ok'
+        ? 'Strava er koblet til – henter øktene dine'
+        : q === 'tilgang'
+          ? 'Kryss av for å dele aktiviteter med appen'
+          : q === 'avbrutt'
+            ? 'Strava ble ikke koblet til'
+            : 'Strava-tilkoblingen feilet – prøv igjen',
+    );
+    window.history.replaceState(null, '', '/hjem');
+    if (q === 'ok') setTimeout(() => cur.reload(), 6000);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const loadCi = useCallback(async () => setCi(await loadCheckins(supabase, athleteId)), [supabase, athleteId]);
   useEffect(() => {
     loadCi();
@@ -69,6 +87,7 @@ export function Home() {
   const view = (e: Entry, prog = cur.prog) => sessionView(e, prog, cur.swimBack);
   const sessions = pre || post ? [] : cur.days[t.d].filter((e) => !e.ghost);
   const ownToday = cur.data.own.filter((o) => o.date === todayKey);
+  const extraToday = cur.data.activities.filter((a) => a.date === todayKey && !a.matched_session_id);
   const tomorrow: Entry | undefined = pre
     ? cur.days.flat().find((e) => !e.ghost)
     : post
@@ -79,7 +98,7 @@ export function Home() {
   const tv = tomorrow ? sessionView(tomorrow, t.d === 6 && !pre ? next.prog : cur.prog, cur.swimBack) : null;
   const focus = cur.data.focus[todayKey];
 
-  const vol = weekVolume(cur.days, cur.prog, cur.swimBack, pre ? [] : cur.data.own);
+  const vol = weekVolume(cur.days, cur.prog, cur.swimBack, pre ? [] : cur.data.own, pre ? [] : cur.data.activities);
   const swimPaused = !!cur.swimBack && dateOf(hw, 6) < cur.swimBack;
 
   return (
@@ -195,6 +214,9 @@ export function Home() {
           })}
         {ownToday.map((o) => (
           <OwnCard key={o.id} o={o} onOpen={() => setOwn(o)} big />
+        ))}
+        {extraToday.map((a) => (
+          <ExtraCard key={a.id} a={a} big />
         ))}
         {cur.loaded && !sessions.length && (
           <div style={{ background: 'var(--card)', boxShadow: 'var(--shadow)', borderRadius: 20, padding: 20, display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -325,5 +347,27 @@ function Ring({ pct }: { pct: number }) {
       <circle cx={56} cy={56} r={r} fill="none" strokeWidth={11} style={{ stroke: 'var(--ringTrack)' }} />
       <circle cx={56} cy={56} r={r} fill="none" stroke="url(#jesoloRing)" strokeWidth={11} strokeLinecap="round" strokeDasharray={`${Math.max(0.01, pct * C)} ${C}`} />
     </svg>
+  );
+}
+
+/** A Strava activity that did not match a planned session ("Ekstra økt"). */
+export function ExtraCard({ a, big }: { a: Activity; big?: boolean }) {
+  const sp = a.sport && a.sport in SP ? (a.sport as Sport) : null;
+  const c = sp ? SP[sp].c : 'var(--muted)';
+  return (
+    <div className={big ? 'today-card' : 'train-row'} style={{ background: sp ? TINT(c) : 'var(--card2)', cursor: 'default' }}>
+      {!big && <SportIcon icon={sp ? ICONS[sp] : ICONS.other} color={c} size={18} />}
+      <span style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: big ? 6 : 2, minWidth: 0 }}>
+        {big && (
+          <span style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 13, fontWeight: 700, color: c }}>
+            <SportIcon icon={sp ? ICONS[sp] : ICONS.other} color={c} size={18} />
+            {sp ? `${SP[sp].label} · Ekstra økt` : 'Ekstra økt'}
+          </span>
+        )}
+        <span style={{ fontSize: big ? 19 : 16, fontWeight: big ? 700 : 600 }}>{a.name || 'Aktivitet'}</span>
+        <span style={{ fontSize: big ? 15 : 13.5, color: 'var(--muted)' }}>{activityStats(a)}</span>
+      </span>
+      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ok)', whiteSpace: 'nowrap' }}>✓ Strava</span>
+    </div>
   );
 }

@@ -1,8 +1,8 @@
 // The athlete's view of the plan (prototype: weekEntries, sv, weekVol). Miguel's changes live in
 // session_changes; the planned row itself is never touched by him.
-import type { Change, Planned, WeekData } from './coach-data';
+import type { Activity, Change, Planned, WeekData } from './coach-data';
 import { DAYS, SD, WEEKS, dateOf, parseYmd, weekDay, ymd } from './dates';
-import { describe, volOf, type Prog, type Template } from './library';
+import { describe, hm, nf, pace, volOf, type Prog, type Template } from './library';
 import { SP, SST, TINT, type Sport, type VisualState } from './sports';
 import { isPaused } from './view';
 
@@ -128,7 +128,7 @@ export function sessionView(e: Entry, prog: Prog, swimBack: Date | null) {
 }
 
 /** Planned vs done km per sport, plus strength sessions (prototype: weekVol). */
-export function weekVolume(days: Entry[][], prog: Prog, swimBack: Date | null, own: WeekData['own']) {
+export function weekVolume(days: Entry[][], prog: Prog, swimBack: Date | null, own: WeekData['own'], activities: Activity[] = []) {
   const plan: Record<Sport, number> = { bike: 0, run: 0, swim: 0, strength: 0 };
   const act: Record<Sport, number> = { bike: 0, run: 0, swim: 0, strength: 0 };
   days.flat().forEach((e) => {
@@ -141,6 +141,11 @@ export function weekVolume(days: Entry[][], prog: Prog, swimBack: Date | null, o
       if (v.done && k === 'strength') act.strength += 1;
     });
   });
+  activities.forEach((a) => {
+    if (a.sport === 'strength') {
+      if (!a.matched_session_id) act.strength += 1;
+    } else if (a.sport && a.sport in act && a.distance_m) act[a.sport as Sport] += a.distance_m / 1000;
+  });
   own.forEach((o) => {
     if (o.sport === 'strength') act.strength += 1;
     else if (o.sport in act && o.distance_km) act[o.sport as Sport] += Number(o.distance_km);
@@ -149,3 +154,13 @@ export function weekVolume(days: Entry[][], prog: Prog, swimBack: Date | null, o
 }
 
 export const dayKey = (w: number, d: number) => ymd(dateOf(w, d));
+
+/** "62,3 km · 2:05 · 168 W" – the Strava line on a session (prototype: strava()). */
+export function activityStats(a: Activity) {
+  const km = (a.distance_m ?? 0) / 1000;
+  const min = (a.duration_s ?? 0) / 60;
+  if (a.sport === 'swim') return [`${Math.round(a.distance_m ?? 0).toLocaleString('nb-NO')} m`, hm(min)].join(' · ');
+  if (a.sport === 'run' && km > 0) return [`${nf(km)} km`, hm(min), `${pace((min * 60) / km)} /km`].join(' · ');
+  if (a.sport === 'bike' && km > 0) return [`${nf(km)} km`, hm(min), a.avg_power ? `${a.avg_power} W` : ''].filter(Boolean).join(' · ');
+  return [km > 0 ? `${nf(km)} km` : '', `${Math.round(min)} min`, a.avg_hr ? `${a.avg_hr} bpm` : ''].filter(Boolean).join(' · ');
+}

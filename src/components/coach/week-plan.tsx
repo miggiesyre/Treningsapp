@@ -9,6 +9,7 @@ import { blockOf, useCoach, type Change, type Planned, type WeekData } from '@/l
 import { DAYS, SD, WEEKS, currentWeek, dateOf, fmtD, parseYmd, today, ymd } from '@/lib/plan/dates';
 import { ICONS, SP, TINT } from '@/lib/plan/sports';
 import { defaultParts } from '@/lib/plan/library';
+import { activityStats } from '@/lib/plan/athlete';
 import { chipView, isPaused } from '@/lib/plan/view';
 import { AddSheet } from './add-sheet';
 import { Builder } from './builder';
@@ -17,7 +18,7 @@ import { EditSheet } from './edit-sheet';
 import { Guide, useGuide } from './guide';
 import type { Draft } from '@/lib/plan/actions';
 
-const EMPTY: WeekData = { planned: [], changes: [], focus: {}, own: [] };
+const EMPTY: WeekData = { planned: [], changes: [], focus: {}, own: [], activities: [] };
 
 export function WeekPlan() {
   const { supabase, athleteId, byId, prog, blocks, settings, ready, loadWeek, reloadTemplates } = useCoach();
@@ -67,6 +68,7 @@ export function WeekPlan() {
       date,
       items: data.planned.filter((x) => x.date === date && byId[x.template_id] && !isPaused(byId[x.template_id], date, swimBack)),
       own: data.own.filter((x) => x.date === date),
+      extra: data.activities.filter((x) => x.date === date && !x.matched_session_id),
     };
   });
   const hasPaused = !!swimBack && dateOf(cw, 0) < swimBack && data.planned.some((x) => byId[x.template_id]?.sport === 'swim');
@@ -135,7 +137,7 @@ export function WeekPlan() {
       )}
 
       <div className="plan-days" style={{ opacity: loaded ? 1 : 0.5, transition: 'opacity .15s' }}>
-        {days.map(({ d, date, items, own }) => {
+        {days.map(({ d, date, items, own, extra }) => {
           const isT = cw === t.w && d === t.d;
           const fg = isT ? 'var(--bike)' : 'var(--ink)';
           return (
@@ -202,6 +204,20 @@ export function WeekPlan() {
                         {[o.distance_km ? `${o.distance_km} km` : '', o.duration_min ? `${o.duration_min} min` : '', o.comment].filter(Boolean).join(' · ')}
                       </span>
                       <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--muted)' }}>Egen</span>
+                    </span>
+                  </div>
+                );
+              })}
+              {extra.map((a) => {
+                const sp = a.sport && a.sport in SP ? (a.sport as keyof typeof SP) : null;
+                const c = sp ? SP[sp].c : 'var(--muted)';
+                return (
+                  <div key={a.id} className="plan-chip" style={{ background: sp ? TINT(c) : 'var(--card2)', cursor: 'default' }}>
+                    <SportIcon icon={sp ? ICONS[sp] : ICONS.other} color={c} style={{ marginTop: 1 }} />
+                    <span style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
+                      <span style={{ fontSize: 13.5, fontWeight: 600, lineHeight: 1.25, overflowWrap: 'anywhere' }}>{a.name || 'Aktivitet'}</span>
+                      <span style={{ fontSize: 12, color: 'var(--muted)', lineHeight: 1.3 }}>{activityStats(a)}</span>
+                      <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--ok)' }}>Ekstra · Strava</span>
                     </span>
                   </div>
                 );

@@ -1,6 +1,6 @@
 # Oppsett (det du må gjøre selv)
 
-Fase 1: steg 1–4. Fase 2 (Rubens ukeplan): steg 5. Fase 3 (din side): steg 6.
+Fase 1: steg 1–4. Fase 2 (Rubens ukeplan): steg 5. Fase 3 (din side): steg 6. Fase 4 (Strava): steg 7.
 
 Alt her er gratis. Regn med ca. 1 time første gang.
 **Gyldne regel:** Nøkler og passord limes bare inn i Supabase, Vercel eller fila `.env.local` på Macen din. Aldri i chat, aldri i koden.
@@ -149,6 +149,23 @@ Ingen SQL denne gangen. Logg inn som deg selv og test:
 - [ ] Styrkeøkt → **Start styrkelogg** → still kg/reps → «✓ Sett 1 ferdig» → … → Lagre og lukk. Økta får «✓ Logget».
 - [ ] **+ Egen økt** (Hjem eller Trening) → Ruben ser den i Ukeplan.
 - [ ] **Trening:** uka dag for dag, ‹ › og sveip.
+
+---
+
+## 7. Fase 4 – Strava
+
+Gjort: Strava-app (klient-ID 266978) og `STRAVA_CLIENT_ID` / `STRAVA_CLIENT_SECRET` i Vercel (Production).
+
+1. strava.com/settings/api → **Rediger** → *Authorization Callback Domain*: `trening.miggie.no` → lagre.
+2. Åpne **trening.miggie.no** (ikke vercel.app-adressen) og logg inn som deg.
+3. Tannhjulet / navnet ditt → Innstillinger → Strava → **Koble til** → godkjenn hos Strava. **La «View data about your activities» stå avkrysset.**
+4. Du kommer tilbake til Hjem: «Strava er koblet til – henter øktene dine». Øktene fra de siste 30 dagene hentes, og nye kommer av seg selv noen sekunder etter at de er lastet opp til Strava.
+
+### Test
+- [ ] En økt i planen som du har gjort får **✓ Strava**, og øktsiden viser «Matchet fra Strava».
+- [ ] En økt som ikke står i planen vises som **Ekstra økt** (Trening, Hjem og Rubens Ukeplan).
+- [ ] «Denne uka» teller km fra Strava.
+- [ ] Innstillinger → Strava → **Synk nå** henter de siste 14 dagene på nytt.
 
 ---
 

@@ -60,7 +60,7 @@ export function AppShell({ role, name, theme, children }: { role: Role; name: st
           ))}
         </nav>
       </div>
-      {settingsOpen && <SettingsSheet theme={theme} onClose={() => setSettingsOpen(false)} />}
+      {settingsOpen && <SettingsSheet theme={theme} role={role} onClose={() => setSettingsOpen(false)} />}
       </ToastProvider>
     </SettingsCtx.Provider>
   );

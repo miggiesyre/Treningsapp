@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { dateOf, ymd } from './dates';
+import { dateOf, osloDate, ymd } from './dates';
 import type { Prog, Template } from './library';
 
 export type Block = { name: string; goal: string | null; week_from: number; week_to: number };
@@ -28,7 +28,21 @@ export type Change = {
   created_at: string;
 };
 export type Own = { id: string; date: string; sport: string; title: string | null; duration_min: number | null; distance_km: number | null; comment: string | null };
-export type WeekData = { planned: Planned[]; changes: Change[]; focus: Record<string, string>; own: Own[] };
+/** A Strava activity, with `date` = its day in Norway. */
+export type Activity = {
+  id: string;
+  sport: string | null;
+  name: string | null;
+  start_time: string;
+  distance_m: number | null;
+  duration_s: number | null;
+  avg_power: number | null;
+  avg_hr: number | null;
+  elevation_m: number | null;
+  matched_session_id: string | null;
+  date: string;
+};
+export type WeekData = { planned: Planned[]; changes: Change[]; focus: Record<string, string>; own: Own[]; activities: Activity[] };
 
 type Ctx = {
   supabase: ReturnType<typeof createClient>;
@@ -94,10 +108,17 @@ export function CoachProvider({ athleteId, coachId, children }: { athleteId: str
     async (w: number): Promise<WeekData> => {
       const from = ymd(dateOf(w, 0));
       const to = ymd(dateOf(w, 6));
-      const [p, f, o] = await Promise.all([
+      const [p, f, o, a] = await Promise.all([
         supabase.from('planned_sessions').select('*').eq('athlete_id', athleteId).gte('date', from).lte('date', to).order('position'),
         supabase.from('day_focus').select('date, text').eq('athlete_id', athleteId).gte('date', from).lte('date', to),
         supabase.from('own_sessions').select('id, date, sport, title, duration_min, distance_km, comment').eq('athlete_id', athleteId).gte('date', from).lte('date', to),
+        supabase
+          .from('activities')
+          .select('id, sport, name, start_time, distance_m, duration_s, avg_power, avg_hr, elevation_m, matched_session_id')
+          .eq('athlete_id', athleteId)
+          .gte('start_time', ymd(dateOf(w, -1)) + 'T20:00:00Z')
+          .lte('start_time', ymd(dateOf(w, 7)) + 'T04:00:00Z')
+          .order('start_time'),
       ]);
       const planned = (p.data ?? []) as Planned[];
       const ids = planned.map((r) => r.id);
@@ -109,6 +130,9 @@ export function CoachProvider({ athleteId, coachId, children }: { athleteId: str
         changes: (c.data ?? []) as Change[],
         focus: Object.fromEntries((f.data ?? []).map((r) => [r.date, r.text])),
         own: (o.data ?? []) as Own[],
+        activities: ((a.data ?? []) as Omit<Activity, 'date'>[])
+          .map((x) => ({ ...x, distance_m: x.distance_m == null ? null : Number(x.distance_m), date: osloDate(x.start_time) }))
+          .filter((x) => x.date >= from && x.date <= to),
       };
     },
     [supabase, athleteId],

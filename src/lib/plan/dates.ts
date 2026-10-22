@@ -27,3 +27,6 @@ export function weekDay(dt: Date) {
 export const today = () => weekDay(new Date());
 /** The week to show by default: today's week, clamped to the plan. */
 export const currentWeek = () => Math.max(1, Math.min(WEEKS, today().w));
+
+/** Calendar date in Norway (yyyy-mm-dd) for a UTC timestamp – Strava times are stored in UTC. */
+export const osloDate = (iso: string) => new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Oslo' }).format(new Date(iso));
