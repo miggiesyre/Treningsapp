@@ -18,9 +18,9 @@ export function setFonts() {
   MEAS = null;
 }
 export const INKS = ['#F2EEE6', '#3E5C6E', '#1B2A33', '#111111', '#FFFFFF', '#19B2F5', '#FFC20E', '#FF3B30', '#AF52DE'];
-export const EL_NAMES = { arc: 'IRONMAN-bue', head: 'IRONMAN', vtext: 'IRONMAN', emblem: 'Logo-emblem', title: 'Tittel', sub: 'Dato', meta: 'Undertittel', stats: 'Tall', zones: 'Soner', pr: 'PR-merke', days: 'Dager til Jesolo', route: 'Rute', panel: 'Kvittering', rows: 'Rader', barcode: 'Strekkode', arc2: 'Sport-bue', drop: 'Venice Jesolo', seal: 'Segl', arcd: 'Dato-bue', big: '70.3', line: 'Tall-linje' };
+export const EL_NAMES = { arc: 'IRONMAN-bue', head: 'IRONMAN', vtext: 'IRONMAN', emblem: 'Logo-emblem', title: 'Tittel', sub: 'Dato', meta: 'Undertittel', stats: 'Tall', zones: 'Soner', pr: 'PR-merke', days: 'Dager til Jesolo', route: 'Rute', panel: 'Kvittering', rows: 'Rader', barcode: 'Strekkode', arc2: 'Sport-bue', drop: 'Venice Jesolo', seal: 'Segl', arcd: 'Dato-bue', big: '70.3', line: 'Tall-linje', line2: 'Tall-linje 2', list: 'Tall-liste', stamp: 'Stempel', hero: 'Stort tall', unit: 'Enhet', top: 'Topptekst', frame: 'Ramme', foot: 'Bunntekst', word: 'Sport' };
 export const SOME_FMT = { story: { l: 'Story', r: '9:16', W: 1080, H: 1920 }, post: { l: 'Innlegg', r: '4:5', W: 1080, H: 1350 }, square: { l: 'Kvadrat', r: '1:1', W: 1080, H: 1080 }, land: { l: 'Landskap', r: '16:9', W: 1920, H: 1080 } };
-export const SOME_TPL = [['badge', 'Badge'], ['shirt', 'T-skjorte'], ['route', 'Rute'], ['receipt', 'Kvittering'], ['vertical', 'Vertikal']];
+export const SOME_TPL = [['badge', 'Badge'], ['shirt', 'T-skjorte'], ['route', 'Rute'], ['receipt', 'Kvittering'], ['vertical', 'Vertikal'], ['column', 'Loddrett'], ['stamp', 'Stempel'], ['label', 'Etikett'], ['hero', 'Stort tall']];
 const rnd = (s) => { const x = Math.sin(s * 12.9898) * 43758.5453; return x - Math.floor(x); };
 export function spaced(c,txt,x,y,sp){const ch=[...txt],ws=ch.map(k=>c.measureText(k).width);const tot=ws.reduce((a,b)=>a+b,0)+sp*(ch.length-1);let cx=x-tot/2;const al=c.textAlign;c.textAlign='left';ch.forEach((k,i)=>{c.fillText(k,cx,y);cx+=ws[i]+sp;});c.textAlign=al;}
 export function rr(c,x,y,w,h,r){c.beginPath();if(c.roundRect)c.roundRect(x,y,w,h,r);else c.rect(x,y,w,h);}
@@ -128,11 +128,54 @@ SCENES.shirt=(W,H,d,k)=>{const u=Math.min(W,H)/1080*k,els=[],tall=H/W>1.5,wide=W
   els.push({id:'seal',type:'seal',x:W/2,y:y+sh/2,w:sw+2*(lw+40*u),h:sh,p:{sw,sh,ls,lw,sl,s:s0}});y+=sh+(tall?8:4)*u;
   if(d.sub){const cs=(tall?80:68)*u*f,cR=420*u*f,cf=`700 ${cs}px ${SF.lbl}`,cb=arcBox(d.sub.toUpperCase(),cs,cR,4*u,cf);els.push({id:'arcd',type:'arcd',x:W/2,y:y+cb.h/2,w:cb.w,h:cb.h,p:{text:d.sub.toUpperCase(),size:cs,R:cR,sp:4*u}});y+=cb.h+(tall?30:16)*u;}
   const bs=(tall?220:180)*u*f,bm=T_('70.3',bs,'num',400,10*u);els.push({id:'big',type:'big',x:W/2,y:y+bm.h*0.42,w:bm.w,h:bm.h*0.84,p:{text:'70.3',size:bs,sp:10*u}});y+=bm.h*0.84+6*u;
-  const rest=(d.stats&&st[0]?st.slice(1):st).map(s=>`${s.val}${s.unit?' '+s.unit:''}`.toUpperCase()).join('  ·  ');
-  if(rest){const m=addText(els,'line',W/2,y+22*u,rest,(tall?38:34)*u*f,'num',400,3*u);y+=m.h+14*u;}
+  const rest=(st[0]?st.slice(1):st).map(s=>`${s.val}${s.unit?' '+s.unit:''}`.toUpperCase());
+  [rest.slice(0,3),rest.slice(3,6)].forEach((r,i)=>{if(!r.length)return;const t=r.join('  ·  '),fs0=(tall?38:34)*u*f,fs=Math.min(fs0,fs0*W*0.86/T_(t,fs0,'num',400,3*u).w);const m=addText(els,i?'line2':'line',W/2,y+fs*0.6,t,fs,'num',400,3*u);y+=m.h+(i?14:4)*u;});
   if(d.days){const m=T_(d.days,34*u,'lbl',500,7*u);els.push({id:'days',type:'days',x:W/2,y:Math.max(y+40*u,H-H*0.04-20*u),w:m.w+110*u,h:m.h,p:{text:d.days,size:34*u,sp:7*u}});y+=m.h+40*u;}
   return{els,total:y};};
-export function mkScene(tpl,W,H,d){let k=1,r=null;for(let i=0;i<4;i++){r=SCENES[tpl](W,H,d,k);if(r.total<=H*0.97)break;k*=H*0.95/r.total;}return r.els;}
+// Loddrett: big IRONMAN running down the left edge, stats as a readable left-aligned list on the right.
+SCENES.column=(W,H,d,k)=>{const u=Math.min(W,H)/1080*k,els=[],tall=H/W>1.5,wide=W/H>1.25,st=d.stats||[],n=st.length;
+  const vsz=Math.min((tall?H*0.115:H*0.13)*k,W*0.2),L=twid('IRONMAN',`${vsz}px ${SF.arc}`,vsz*0.08);
+  els.push({id:'vtext',type:'vtext',x:40*u+vsz*0.62,y:H/2,w:vsz*1.2,h:Math.min(L,H*0.94),p:{text:'IRONMAN',size:vsz,sp:vsz*0.08}});
+  const left=40*u+vsz*1.3+50*u,right=W-60*u,cw=right-left,cx=(left+right)/2;let y=H*(tall?0.08:0.07);
+  const ed=Math.min((tall?200:150)*u,cw*0.4);els.push({id:'emblem',type:'emblem',x:left+ed/2,y:y+ed/2,w:ed,h:ed,p:{small:true}});y+=ed+30*u;
+  if(d.word){const m=T_(d.word,(tall?64:52)*u,'lbl',700,8*u);els.push({id:'word',type:'text',x:left+m.w/2+2,y:y+m.h/2,w:m.w+4,h:m.h,p:{text:d.word,size:(tall?64:52)*u,font:'lbl',weight:700,sp:8*u}});y+=m.h;}
+  if(d.sub){const m=T_(d.sub.toUpperCase(),28*u,'mono',400,3*u);els.push({id:'sub',type:'text',x:left+m.w/2+2,y:y+m.h/2,w:m.w+4,h:m.h,p:{text:d.sub.toUpperCase(),size:28*u,font:'mono',weight:400,sp:3*u,alpha:0.8}});y+=m.h+30*u;}
+  if(n){const room=H*(tall?0.88:0.9)-y-(d.days?60*u:0);const rh0=1.62;const vs=Math.min(room/(n*rh0),(tall?150:wide?80:110)*u);const rh=vs*rh0;
+    els.push({id:'list',type:'list',x:cx,y:y+n*rh/2,w:cw,h:n*rh,p:{items:st,vs,rh}});y+=n*rh+20*u;}
+  if(d.days){const sz=Math.min(30*u,cw*1.3/Math.max(10,d.days.length));const m=T_(d.days,sz,'lbl',500,5*u);els.push({id:'days',type:'days',x:cx,y:Math.max(y+20*u,H*0.94),w:m.w+sz*3,h:m.h,p:{text:d.days,size:sz,sp:5*u}});}
+  return{els,total:Math.max(y,H*0.9)};};
+// Stempel: one big round rubber stamp with ring text, the main number in the middle, other stats below.
+SCENES.stamp=(W,H,d,k)=>{const u=Math.min(W,H)/1080*k,els=[],tall=H/W>1.5,wide=W/H>1.25,st=d.stats||[];let y=H*(tall?0.1:0.06);
+  const D=Math.min((tall?820:wide?H*0.78/k:700)*u,W*0.86);const s0=st[0]||{val:'70.3',unit:'',label:'Venice-Jesolo'};
+  const cx=wide?W*0.33:W/2;els.push({id:'stamp',type:'stamp',x:cx,y:wide?H/2:y+D/2,w:D,h:D,p:{s:s0,word:d.word||'TRENING',sub:(d.sub||'').toUpperCase()}});if(!wide)y+=D+(tall?60:36)*u;
+  const rest=st.slice(1);let y2=wide?H*0.14:y;const sx=wide?W*0.74:W/2,sw=wide?W*0.44:W*0.84;
+  if(rest.length){const vs=(tall?90:wide?70:74)*u,ls=vs*0.27,lay=rest.length<=3&&!wide?'row':'grid2';const sd=statsDims(rest,lay,vs,ls,sw);els.push({id:'stats',type:'stats',x:sx,y:y2+sd.h/2,w:sd.w,h:sd.h,p:{items:rest,layout:lay,vs,ls,rh:sd.rh}});y2+=sd.h+20*u;}
+  if(d.days){const m=T_(d.days,34*u,'lbl',500,7*u);els.push({id:'days',type:'days',x:sx,y:Math.max(y2+30*u,H*0.94),w:m.w+110*u,h:m.h,p:{text:d.days,size:34*u,sp:7*u}});y2+=m.h+30*u;}
+  return{els,total:wide?Math.max(D+H*0.1,y2):y2};};
+// Etikett: seed-packet label with a double frame, arched name, emblem and dotted stat rows.
+SCENES.label=(W,H,d,k)=>{const u=Math.min(W,H)/1080*k,els=[],tall=H/W>1.5,wide=W/H>1.25,st=d.stats||[];const m0=W*0.06,fw=W-2*m0,fh=H-2*m0*(W/H>1?1:0.75)-(0);
+  els.push({id:'frame',type:'frame',x:W/2,y:H/2,w:fw,h:H-m0*1.5,p:{}});let y=m0+(tall?70:44)*u;
+  const top='REG. NOR.  ·  EST. 2026  ·  NO. 70.3';addText(els,'top',W/2,y,top,(tall?26:22)*u,'lbl',600,6*u);y+=(tall?40:28)*u;
+  const R=(tall?480:wide?360:420)*u,as=(tall?112:wide?80:96)*u,ab=arcBox('IRONMAN',as,R,6*u);els.push({id:'arc',type:'arc',x:W/2,y:y+ab.h/2,w:ab.w,h:ab.h,p:{text:'IRONMAN',size:as,R,sp:6*u}});
+  const ed=(tall?230:wide?140:180)*u,ey=y+as*1.15+ed/2;els.push({id:'emblem',type:'emblem',x:W/2,y:ey,w:ed,h:ed,p:{small:true}});y=Math.max(ey+ed/2,y+ab.h)+(tall?36:20)*u;
+  if(d.word){const m=addText(els,'word',W/2,y+30*u,`★  ${d.word}  ★`,(tall?60:48)*u,'num',400,6*u);y+=m.h+6*u;}
+  if(d.sub){const m=addText(els,'sub',W/2,y+16*u,d.sub.toUpperCase(),26*u,'mono',400,4*u,{alpha:0.8});y+=m.h+(tall?30:16)*u;}
+  if(st.length){const room=H-m0*0.75-(tall?150:90)*u-y,fs=Math.min(room/((st.length+0.4)*1.75),(tall?54:wide?34:42)*u),rh=fs*1.75,rw=fw*0.8;els.push({id:'rows',type:'rows',x:W/2,y:y+(st.length*rh+rh*0.4)/2,w:rw,h:st.length*rh+rh*0.4,p:{items:st,fs,rh}});y+=st.length*rh+rh*0.4+20*u;}
+  const foot=d.days||'VENICE  ·  JESOLO  ·  2027';const fsz=(tall?30:24)*u;addText(els,'foot',W/2,Math.max(y+20*u,H-m0*0.75-(tall?70:44)*u),foot,fsz,'lbl',500,6*u);
+  return{els,total:y+fsz*2+m0};};
+// Stort tall: one huge number across the card, sport word arched above, the rest small underneath.
+SCENES.hero=(W,H,d,k)=>{const u=Math.min(W,H)/1080*k,els=[],tall=H/W>1.5,wide=W/H>1.25,st=d.stats||[];const s0=st[0]||{val:'70.3',unit:'',label:'Venice-Jesolo'};let y=H*(tall?0.1:0.07);
+  addText(els,'top',W/2,y,'IRONMAN 70.3  ·  VENICE-JESOLO',(tall?30:26)*u,'lbl',600,8*u);y+=(tall?90:50)*u;
+  const ws=(tall?110:84)*u,wR=520*u,wf=`700 ${ws}px ${SF.lbl}`,wb=arcBox(d.word||'TRENING',ws,wR,8*u,wf);els.push({id:'arc2',type:'arc',x:W/2,y:y+wb.h/2,w:wb.w,h:wb.h,p:{text:d.word||'TRENING',size:ws,R:wR,sp:8*u,font:'lbl',weight:700}});y+=wb.h+(tall?10:0)*u;
+  const v=String(s0.val),m1=T_(v,100,'num',400,0);const bs=Math.min(H*(tall?0.24:0.3)*k,100*W*0.86/m1.w);const bm=T_(v,bs,'num',400,bs*0.02);
+  els.push({id:'hero',type:'big',x:W/2,y:y+bm.h*0.42,w:bm.w,h:bm.h*0.84,p:{text:v,size:bs,sp:bs*0.02}});y+=bm.h*0.84+10*u;
+  const ut=[s0.unit,s0.label].filter(Boolean).join('  ·  ').toUpperCase();if(ut){const m=addText(els,'unit',W/2,y+24*u,ut,(tall?44:36)*u,'lbl',600,10*u);y+=m.h+(tall?50:24)*u;}
+  if(d.sub){const m=addText(els,'sub',W/2,y+16*u,d.sub.toUpperCase(),28*u,'mono',400,4*u,{alpha:0.8});y+=m.h+(tall?40:20)*u;}
+  const rest=st.slice(1);if(rest.length){const vs=(tall?76:60)*u,ls=vs*0.27,lay=rest.length<=3?'row':'grid2';const sd=statsDims(rest,lay,vs,ls,W*(wide?0.6:0.84));els.push({id:'stats',type:'stats',x:W/2,y:y+sd.h/2,w:sd.w,h:sd.h,p:{items:rest,layout:lay,vs,ls,rh:sd.rh}});y+=sd.h+20*u;}
+  if(d.days){const m=T_(d.days,34*u,'lbl',500,7*u);els.push({id:'days',type:'days',x:W/2,y:Math.max(y+30*u,H*0.94),w:m.w+110*u,h:m.h,p:{text:d.days,size:34*u,sp:7*u}});y+=m.h+30*u;}
+  return{els,total:y};};
+export function mkScene(tpl,W,H,d){let k=1,r=null;for(let i=0;i<4;i++){r=SCENES[tpl](W,H,d,k);if(r.total<=H*0.97)break;k*=H*0.95/r.total;}
+  r.els.forEach(e=>{const s=Math.min(1,W*0.94/e.w,H*0.97/e.h);if(s<1)e.s=s;const hw=e.w*(e.s||1)/2,hh=e.h*(e.s||1)/2;if(hw*2<W)e.x=Math.max(hw+W*0.03,Math.min(W-hw-W*0.03,e.x));if(hh*2<H)e.y=Math.max(hh,Math.min(H-hh,e.y));});return r.els;}
 function drawEl(c,el,o,lt,ga){const p=el.p,ink=p.onPaper?o.paperInk:o.ink;c.fillStyle=ink;c.strokeStyle=ink;c.globalAlpha=ga;const cl=v=>Math.max(0,Math.min(1,v));
   switch(el.type){
   case 'text':{c.globalAlpha=ga*(p.alpha||1);c.font=`${p.weight||400} ${p.size}px ${SF[p.font]}`;c.textBaseline='middle';spaced(c,p.text,0,0,p.sp||0);break;}
@@ -147,6 +190,17 @@ function drawEl(c,el,o,lt,ga){const p=el.p,ink=p.onPaper?o.paperInk:o.ink;c.fill
     c.font=`600 ${p.ls}px ${SF.lbl}`;spaced(c,p.sl[0],-a-p.lw/2-20*(p.ls/26),0,p.ls*0.08);spaced(c,p.sl[1],a+p.lw/2+20*(p.ls/26),0,p.ls*0.08);break;}
   case 'arcd':{c.font=`700 ${p.size}px ${SF.lbl}`;c.save();c.translate(0,el.h/2-p.size*0.2-p.R);ringText(c,p.text,p.R,p.sp);c.restore();break;}
   case 'big':{c.font=`${p.size}px ${SF.num}`;c.textBaseline='middle';spaced(c,p.text,0,p.size*0.04,p.sp);const bg=bgColor(o.bg);if(bg){c.save();c.strokeStyle=bg;c.lineWidth=p.size*0.014;c.globalAlpha=ga*0.85;const ch=[...p.text],ws=ch.map(q=>c.measureText(q).width);let x=-(ws.reduce((a2,b2)=>a2+b2,0)+p.sp*(ch.length-1))/2;c.textAlign='left';ch.forEach((q,i)=>{c.save();c.translate(x+ws[i]*0.5,p.size*0.04);c.scale(0.86,0.86);c.strokeText(q,-ws[i]*0.5,0);c.restore();x+=ws[i]+p.sp;});c.restore();c.textAlign='center';}break;}
+  case 'list':{const w=el.w;c.textBaseline='alphabetic';p.items.forEach((s,i)=>{const kk=cl((lt-i*0.12)/0.4);if(kk<=0)return;c.globalAlpha=ga*kk;const y0=-el.h/2+i*p.rh,x0=-w/2;c.textAlign='left';
+      c.font=`${p.vs}px ${SF.num}`;c.fillText(s.val,x0,y0+p.vs*0.92);const vw=c.measureText(s.val).width;if(s.unit){c.font=`600 ${p.vs*0.36}px ${SF.lbl}`;c.fillText(' '+s.unit.toUpperCase(),x0+vw,y0+p.vs*0.92);}
+      c.font=`500 ${p.vs*0.26}px ${SF.lbl}`;c.globalAlpha=ga*kk*0.78;const lb=s.label.toUpperCase(),lw=twid(lb,c.font,p.vs*0.08);spaced(c,lb,x0+lw/2,y0+p.vs*1.3,p.vs*0.08);
+      if(i<p.items.length-1){c.globalAlpha=ga*kk*0.35;c.fillRect(x0,y0+p.rh-p.vs*0.12,w,Math.max(1,p.vs*0.025));}});c.globalAlpha=ga;c.textAlign='center';break;}
+  case 'stamp':{const r=el.w/2;c.save();c.rotate(-0.07);c.lineWidth=r*0.03;c.beginPath();c.arc(0,0,r*0.97,0,Math.PI*2);c.stroke();c.lineWidth=r*0.012;c.beginPath();c.arc(0,0,r*0.9,0,Math.PI*2);c.stroke();c.beginPath();c.arc(0,0,r*0.62,0,Math.PI*2);c.stroke();
+    const ts=r*0.12;c.font=`${ts}px ${SF.arc}`;c.textBaseline='alphabetic';const top='IRONMAN 70.3',ch=[...top],ws=ch.map(x=>c.measureText(x).width),sp=r*0.02,L=ws.reduce((a,b)=>a+b,0)+sp*(ch.length-1),R=r*0.72;let a=-Math.PI/2-L/R/2;
+    ch.forEach((x,i)=>{const am=a+ws[i]/2/R;c.save();c.translate(Math.cos(am)*R,Math.sin(am)*R);c.rotate(am+Math.PI/2);c.textAlign='center';c.fillText(x,0,0);c.restore();a+=(ws[i]+sp)/R;});
+    c.font=`600 ${r*0.075}px ${SF.lbl}`;ringText(c,'VENICE · JESOLO · 2027',r*0.79,r*0.02);star(c,-r*0.765,0,r*0.035);star(c,r*0.765,0,r*0.035);
+    c.textAlign='center';c.textBaseline='middle';c.font=`700 ${r*0.11}px ${SF.lbl}`;spaced(c,p.word,0,-r*0.36,r*0.02);const v=String(p.s.val);let vs=r*0.5;c.font=`${vs}px ${SF.num}`;const vw=c.measureText(v).width;if(vw>r*1.05){vs*=r*1.05/vw;c.font=`${vs}px ${SF.num}`;}c.fillText(v,0,-r*0.02);
+    const lab=[p.s.unit,p.s.label].filter(Boolean).join(' · ').toUpperCase();if(lab){c.font=`600 ${r*0.07}px ${SF.lbl}`;spaced(c,lab,0,r*0.27,r*0.015);}if(p.sub){c.font=`400 ${r*0.06}px ${SF.mono}`;spaced(c,p.sub,0,r*0.42,r*0.01);}c.restore();break;}
+  case 'frame':{const w=el.w,h=el.h,q=Math.min(w,h)/1000;c.lineWidth=7*q;c.strokeRect(-w/2,-h/2,w,h);c.lineWidth=2.5*q;c.strokeRect(-w/2+18*q,-h/2+18*q,w-36*q,h-36*q);[[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([a,b])=>star(c,a*(w/2-18*q),b*(h/2-18*q),16*q));break;}
   case 'vtext':{c.save();c.rotate(Math.PI/2);c.font=`${p.size}px ${SF.arc}`;c.textBaseline='middle';spaced(c,p.text,0,0,p.sp);c.restore();break;}
   case 'emblem':{const r=el.w/2;c.lineWidth=r*0.035;c.beginPath();c.arc(0,0,r*0.96,0,Math.PI*2);c.stroke();c.lineWidth=r*0.014;c.beginPath();c.arc(0,0,r*(p.small?0.86:0.78),0,Math.PI*2);c.stroke();
     if(!p.small){c.font=`600 ${r*0.095}px ${SF.lbl}`;ringText(c,'TRI 70.3 · VENICE-JESOLO · 2027',r*0.885,r*0.012);star(c,0,-r*0.87,r*0.045);}

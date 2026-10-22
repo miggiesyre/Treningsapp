@@ -362,7 +362,8 @@ function Editor({ src, picked, common, onBack }: { src: Src; picked: Act[]; comm
     }
   };
 
-  const phv = wide ? 'min(72vh, 700px)' : '46vh';
+  const phv = wide ? 'min(72vh, 700px)' : '58vh';
+  const bh = wide ? 50 : 42;
   const checker = bg === 'none' ? 'repeating-conic-gradient(#bdb6aa 0% 25%, #d9d3c8 0% 50%) 0 0 / 20px 20px' : 'transparent';
   const toggles = [
     ...D.items.map((i) => ({ k: i.k, label: i.label, val: `${i.val}${i.unit ? ' ' + i.unit : ''}` })),
@@ -371,7 +372,7 @@ function Editor({ src, picked, common, onBack }: { src: Src; picked: Act[]; comm
 
   return (
     <div className="some-grid" style={{ gridTemplateColumns: wide ? 'minmax(0,1fr) 380px' : 'minmax(0,1fr)' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center', minWidth: 0 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: wide ? 10 : 6, alignItems: 'center', minWidth: 0, ...(wide ? {} : { position: 'sticky', top: 0, zIndex: 5, background: 'var(--bg)', paddingBottom: 6 }) }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', gap: 10 }}>
           <button onClick={onBack} style={{ border: 0, background: 'none', color: 'var(--ink)', fontSize: 16, padding: '6px 0', cursor: 'pointer' }}>
             ‹ {src.kind === 'acts' ? 'Velg økter' : 'Tilbake'}
@@ -405,7 +406,7 @@ function Editor({ src, picked, common, onBack }: { src: Src; picked: Act[]; comm
         </div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, minWidth: 0 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: wide ? 14 : 10, minWidth: 0, fontSize: wide ? undefined : 14 }}>
         <div className="seg-n" style={{ gridTemplateColumns: 'repeat(5,minmax(0,1fr))', borderRadius: 12, padding: 3 }}>
           {(
             [
@@ -450,7 +451,7 @@ function Editor({ src, picked, common, onBack }: { src: Src; picked: Act[]; comm
         {panel === 'mal' && (
           <div style={{ display: 'flex', gap: 12, overflowX: 'auto', scrollSnapType: 'x mandatory', padding: '4px 2px 8px' }}>
             {tpls.map(([k, l]) => {
-              const tw = W > H ? 190 : 108;
+              const tw = wide ? (W > H ? 190 : 108) : W > H ? 120 : 64;
               return (
                 <button
                   key={k}
@@ -463,7 +464,7 @@ function Editor({ src, picked, common, onBack }: { src: Src; picked: Act[]; comm
                   <span style={{ width: tw, height: Math.round((tw * H) / W), borderRadius: 10, overflow: 'hidden', outline: tpl === k ? '3px solid var(--ink)' : '1px solid var(--line)', outlineOffset: 2, display: 'block', background: checker }}>
                     <Thumb tpl={k} W={W} H={H} d={dd} o={o} tw={tw} v={fontsReady} />
                   </span>
-                  <span style={{ fontSize: 13, fontWeight: 600 }}>{l}</span>
+                  <span style={{ fontSize: wide ? 13 : 11.5, fontWeight: 600 }}>{l}</span>
                 </button>
               );
             })}
@@ -477,7 +478,7 @@ function Editor({ src, picked, common, onBack }: { src: Src; picked: Act[]; comm
                 key={g.k}
                 onClick={() => setOn((x) => ({ ...x, [g.k]: !x[g.k] }))}
                 aria-pressed={!!on[g.k]}
-                style={{ width: '100%', border: 0, background: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '11px 0', borderTop: i ? '1px solid var(--line)' : 'none', cursor: 'pointer', textAlign: 'left' }}
+                style={{ width: '100%', border: 0, background: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: wide ? '11px 0' : '7px 0', borderTop: i ? '1px solid var(--line)' : 'none', cursor: 'pointer', textAlign: 'left' }}
               >
                 <span style={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0 }}>
                   <span style={{ fontSize: 15, fontWeight: 600 }}>{g.label}</span>
@@ -575,23 +576,23 @@ function Editor({ src, picked, common, onBack }: { src: Src; picked: Act[]; comm
                 ['both', 'Begge'],
               ] as const
             ).map(([k, l]) => (
-              <button key={k} aria-pressed={out === k} onClick={() => setOut(k)} style={{ padding: '9px 4px', fontSize: 14 }}>
+              <button key={k} aria-pressed={out === k} onClick={() => setOut(k)} style={{ padding: wide ? '9px 4px' : '6px 4px', fontSize: 14 }}>
                 {l}
               </button>
             ))}
           </div>
           {bg === 'none' && out !== 'png' && <span style={{ fontSize: 12.5, color: 'var(--muted)' }}>Transparent video lagres som WebM (Chrome). På iPhone får videoen bakgrunn.</span>}
-          <div className="two" style={{ opacity: busy ? 0.5 : 1 }}>
-            <button className="btn-ink" style={{ height: 50, fontSize: 15, fontWeight: 700 }} onClick={() => exportFiles('ig')}>
-              Instagram-historie
+          <div className="two" style={{ opacity: busy ? 0.5 : 1, ...(wide ? {} : { gridTemplateColumns: 'repeat(4,minmax(0,1fr))', gap: 6 }) }}>
+            <button className="btn-ink" style={{ height: bh, fontSize: wide ? 15 : 13.5, fontWeight: 700 }} onClick={() => exportFiles('ig')}>
+              {wide ? 'Instagram-historie' : 'Instagram'}
             </button>
-            <button onClick={() => exportFiles('snap')} style={{ height: 50, border: 0, borderRadius: 14, background: '#FFFC00', color: '#111', fontSize: 15, fontWeight: 700, cursor: 'pointer' }}>
+            <button onClick={() => exportFiles('snap')} style={{ height: bh, border: 0, borderRadius: 14, background: '#FFFC00', color: '#111', fontSize: wide ? 15 : 13.5, fontWeight: 700, cursor: 'pointer' }}>
               Snapchat
             </button>
-            <button className="btn-row" style={{ height: 50, fontSize: 15, background: 'var(--card)', boxShadow: 'var(--shadow)' }} onClick={() => exportFiles('save')}>
+            <button className="btn-row" style={{ height: bh, fontSize: wide ? 15 : 13.5, background: 'var(--card)', boxShadow: 'var(--shadow)' }} onClick={() => exportFiles('save')}>
               Lagre
             </button>
-            <button className="btn-row" style={{ height: 50, fontSize: 15, background: 'var(--card)', boxShadow: 'var(--shadow)' }} onClick={() => exportFiles('more')}>
+            <button className="btn-row" style={{ height: bh, fontSize: wide ? 15 : 13.5, background: 'var(--card)', boxShadow: 'var(--shadow)' }} onClick={() => exportFiles('more')}>
               Mer ↗
             </button>
           </div>
