@@ -7,7 +7,7 @@ import { usePlan } from '@/lib/plan/coach-data';
 import { WEEKS } from '@/lib/plan/dates';
 import { parseYmd } from '@/lib/plan/dates';
 
-const EMPTY: AthleteWeek = { planned: [], changes: [], focus: {}, own: [], logged: {} };
+const EMPTY: AthleteWeek = { planned: [], changes: [], focus: {}, own: [], activities: [], logged: {} };
 
 /** One plan week for Miguel, with moved sessions on their new day. */
 export function useAthleteWeek(w: number) {

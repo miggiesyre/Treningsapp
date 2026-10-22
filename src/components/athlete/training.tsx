@@ -9,7 +9,7 @@ import { blockOf, usePlan, type Own } from '@/lib/plan/coach-data';
 import { SD, WEEKS, currentWeek, dateOf, fmtD, today, ymd } from '@/lib/plan/dates';
 import { nf } from '@/lib/plan/library';
 import { ICONS, SP, TINT, type Sport } from '@/lib/plan/sports';
-import { OwnCard } from './home';
+import { ExtraCard, OwnCard } from './home';
 import { OwnSheet } from './own-sheet';
 import { useAthleteWeek } from './use-week';
 
@@ -24,7 +24,7 @@ export function Training() {
   const t = today();
   const go = (x: number) => setW(Math.max(1, Math.min(WEEKS, x)));
   const b = blockOf(blocks, w);
-  const vol = weekVolume(wk.days, wk.prog, wk.swimBack, wk.data.own);
+  const vol = weekVolume(wk.days, wk.prog, wk.swimBack, wk.data.own, wk.data.activities);
   const swimPaused = !!wk.swimBack && dateOf(w, 6) < wk.swimBack;
 
   return (
@@ -100,6 +100,7 @@ export function Training() {
           const isT = w === t.w && d === t.d;
           const key = ymd(dateOf(w, d));
           const owns = wk.data.own.filter((o) => o.date === key);
+          const extras = wk.data.activities.filter((a) => a.date === key && !a.matched_session_id);
           const fg = isT ? 'var(--bike)' : 'var(--ink)';
           return (
             <div key={key} style={{ display: 'grid', gridTemplateColumns: '52px minmax(0,1fr)', gap: 12, padding: '14px 0', borderTop: d ? '1px solid var(--line)' : 'none' }}>
@@ -124,7 +125,10 @@ export function Training() {
                 {owns.map((o) => (
                   <OwnCard key={o.id} o={o} onOpen={() => setOwn(o)} />
                 ))}
-                {!list.length && !owns.length && <span style={{ fontSize: 15, color: 'var(--faint)' }}>Hvile</span>}
+                {extras.map((a) => (
+                  <ExtraCard key={a.id} a={a} />
+                ))}
+                {!list.length && !owns.length && !extras.length && <span style={{ fontSize: 15, color: 'var(--faint)' }}>Hvile</span>}
               </span>
             </div>
           );

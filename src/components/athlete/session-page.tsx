@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { when } from '@/components/coach/edit-sheet';
 import { Sheet, SheetHead, SportIcon } from '@/components/sheet';
 import { useToast } from '@/components/toast';
-import { REASONS, sessionView, todayOrd } from '@/lib/plan/athlete';
+import { REASONS, activityStats, sessionView, todayOrd } from '@/lib/plan/athlete';
 import { addChange, undoChange } from '@/lib/plan/athlete-actions';
 import { addComment } from '@/lib/plan/actions';
 import { blockOf, usePlan, type Change } from '@/lib/plan/coach-data';
@@ -76,6 +76,7 @@ export function SessionPage({ id }: { id: string }) {
   const b = blockOf(blocks, w);
   const isStrength = e.t.sport === 'strength';
   const exs = isStrength ? exerciseRows(e.t, wk.prog, v.f) : [];
+  const matched = wk.data.activities.find((a) => a.matched_session_id === id);
 
   const thread = [
     ...wk.data.changes.filter((c) => c.planned_session_id === id).map((c) => ({ key: c.id, sys: true, mine: false, text: `Miguel ${CHANGE_TEXT[c.kind]}${c.reason ? ' · ' + c.reason : ''}`, at: c.created_at })),
@@ -159,6 +160,19 @@ export function SessionPage({ id }: { id: string }) {
           </div>
         ))}
       </div>
+
+      {matched && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, background: 'var(--card)', boxShadow: 'var(--shadow)', borderRadius: 16, padding: '14px 16px' }}>
+          <span style={{ width: 30, height: 30, flexShrink: 0, borderRadius: '50%', background: 'var(--ok)', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 700 }}>✓</span>
+          <span style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
+            <span style={{ fontSize: 16, fontWeight: 600 }}>Matchet fra Strava</span>
+            <span style={{ fontSize: 14, color: 'var(--muted)' }}>
+              {matched.name ? `${matched.name} · ` : ''}
+              {activityStats(matched)}
+            </span>
+          </span>
+        </div>
+      )}
 
       <div style={{ display: 'flex', flexDirection: 'column' }}>
         <span style={{ fontSize: 20, fontWeight: 700, marginBottom: 6 }}>Program</span>

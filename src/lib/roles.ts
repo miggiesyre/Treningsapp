@@ -21,7 +21,7 @@ export const NAV: Record<Role, { href: string; label: string }[]> = {
 
 // Routes each role may open. Anything else redirects to the role's home.
 const ALLOWED: Record<Role, string[]> = {
-  athlete: ['/hjem', '/trening', '/soner', '/progresjon', '/some', '/okt'],
+  athlete: ['/hjem', '/trening', '/soner', '/progresjon', '/some', '/okt', '/api/strava'],
   coach: ['/ukeplan', '/okter', '/varsler', '/miguel'],
 };
 const SHARED = ['/nytt-passord'];
