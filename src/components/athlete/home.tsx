@@ -103,22 +103,19 @@ export function Home() {
 
   return (
     <div className="home">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
-          <span style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.01em' }}>
-            {DAYS[(now.getDay() + 6) % 7]} {now.getDate()}. {MONL[now.getMonth()]}
+      <div className="home-head">
+        <div className="home-date">
+          <span className="home-dow">
+            {DAYS[(now.getDay() + 6) % 7]}
+            <button className="gear" onClick={openSettings} title="Innstillinger" aria-label="Innstillinger">
+              <span />
+            </button>
           </span>
-          <span style={{ fontSize: 14, color: 'var(--muted)' }}>
-            {pre ? 'Planen starter mandag 26. oktober' : post ? 'Planen er fullført' : `Uke ${t.w} av ${WEEKS}${b ? ' · ' + b.name : ''}`}
+          <span className="home-dm">
+            {now.getDate()}. {MONL[now.getMonth()]}
           </span>
+          {!pre && <span style={{ fontSize: 13, color: 'var(--muted)', marginTop: 2 }}>{post ? 'Planen er fullført' : `Uke ${t.w} av ${WEEKS}${b ? ' · ' + b.name : ''}`}</span>}
         </div>
-        <button className="gear" onClick={openSettings} title="Innstillinger" aria-label="Innstillinger">
-          <span />
-        </button>
-      </div>
-
-      <div className="home-brand">
-        <img src="/logo.svg" alt="Tri 70.3" className="home-logo" />
         <div className="home-ring">
           <Ring pct={pct} />
           <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>
@@ -127,6 +124,7 @@ export function Home() {
             <span style={{ fontSize: 11, color: 'var(--muted)' }}>dager</span>
           </div>
         </div>
+        <img src="/logo.svg" alt="Tri 70.3" className="home-logo" />
       </div>
 
       <section style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -134,7 +132,7 @@ export function Home() {
           <span style={{ fontSize: 17, fontWeight: 700 }}>Dagens innsjekk</span>
           <span style={{ fontSize: 13, color: 'var(--muted)' }}>Valgfritt</span>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,minmax(0,1fr))', gap: 10 }}>
+        <div className="ci-grid">
           {CI.map((c) => {
             const h = history(ci, c.k);
             const last = h[0];
@@ -142,15 +140,15 @@ export function Home() {
             const diff = last && prev ? last.v - prev.v : 0;
             const saved = !!last && last.date === todayKey && last.manual;
             return (
-              <button key={c.k} className="ci-tile" onClick={() => setCiOpen(c.k)} style={{ background: TINT(c.color) }}>
-                <span style={{ fontSize: 11.5, fontWeight: 600, color: c.color, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', paddingRight: 14 }}>{c.label}</span>
+              <button key={c.k} className="ci-tile" onClick={() => setCiOpen(c.k)} style={{ background: `linear-gradient(150deg, color-mix(in oklch, ${c.color} 34%, var(--card)), color-mix(in oklch, ${c.color} 12%, var(--card)))` }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: c.color, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', paddingRight: 14 }}>{c.label}</span>
                 <span style={{ display: 'flex', alignItems: 'baseline', gap: 2, minWidth: 0, flexWrap: 'wrap' }}>
                   <span className="ci-val" style={{ color: c.color }}>
                     {last ? c.fmt(last.v) : '–'}
                   </span>
-                  {last && <span style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--muted)' }}>{c.unit}</span>}
+                  {last && <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)' }}>{c.unit}</span>}
                 </span>
-                <span style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <span style={{ fontSize: 12, color: 'var(--muted)', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {!last ? (
                     'Legg inn'
                   ) : !prev ? (
@@ -252,7 +250,7 @@ export function Home() {
             const paused = k === 'swim' && swimPaused;
             const st = k === 'strength';
             return (
-              <div key={k} className="week-tile" style={{ background: TINT(SP[k].c), opacity: paused ? 0.55 : 1 }}>
+              <div key={k} className="week-tile" style={{ background: `linear-gradient(150deg, color-mix(in oklch, ${SP[k].c} 30%, var(--card)), color-mix(in oklch, ${SP[k].c} 10%, var(--card)))`, opacity: paused ? 0.55 : 1 }}>
                 <SportIcon icon={ICONS[k]} color={SP[k].c} size={18} />
                 <span style={{ fontFamily: 'var(--num)', fontSize: 20, fontWeight: 700, lineHeight: 1 }}>{paused ? '–' : st ? String(vol.act.strength) : nf(vol.act[k], 0)}</span>
                 <span style={{ fontSize: 11.5, color: 'var(--muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
