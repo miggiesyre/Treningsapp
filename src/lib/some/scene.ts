@@ -18,9 +18,9 @@ export function setFonts() {
   MEAS = null;
 }
 export const INKS = ['#F2EEE6', '#3E5C6E', '#1B2A33', '#111111', '#FFFFFF', '#19B2F5', '#FFC20E', '#FF3B30', '#AF52DE'];
-export const EL_NAMES = { arc: 'IRONMAN-bue', head: 'IRONMAN', vtext: 'IRONMAN', emblem: 'Logo-emblem', title: 'Tittel', sub: 'Dato', meta: 'Undertittel', stats: 'Tall', zones: 'Soner', pr: 'PR-merke', days: 'Dager til Jesolo', route: 'Rute', panel: 'Kvittering', rows: 'Rader', barcode: 'Strekkode' };
+export const EL_NAMES = { arc: 'IRONMAN-bue', head: 'IRONMAN', vtext: 'IRONMAN', emblem: 'Logo-emblem', title: 'Tittel', sub: 'Dato', meta: 'Undertittel', stats: 'Tall', zones: 'Soner', pr: 'PR-merke', days: 'Dager til Jesolo', route: 'Rute', panel: 'Kvittering', rows: 'Rader', barcode: 'Strekkode', arc2: 'Sport-bue', drop: 'Venice Jesolo', seal: 'Segl', arcd: 'Dato-bue', big: '70.3', line: 'Tall-linje' };
 export const SOME_FMT = { story: { l: 'Story', r: '9:16', W: 1080, H: 1920 }, post: { l: 'Innlegg', r: '4:5', W: 1080, H: 1350 }, square: { l: 'Kvadrat', r: '1:1', W: 1080, H: 1080 }, land: { l: 'Landskap', r: '16:9', W: 1920, H: 1080 } };
-export const SOME_TPL = [['badge', 'Badge'], ['route', 'Rute'], ['receipt', 'Kvittering'], ['vertical', 'Vertikal']];
+export const SOME_TPL = [['badge', 'Badge'], ['shirt', 'T-skjorte'], ['route', 'Rute'], ['receipt', 'Kvittering'], ['vertical', 'Vertikal']];
 const rnd = (s) => { const x = Math.sin(s * 12.9898) * 43758.5453; return x - Math.floor(x); };
 export function spaced(c,txt,x,y,sp){const ch=[...txt],ws=ch.map(k=>c.measureText(k).width);const tot=ws.reduce((a,b)=>a+b,0)+sp*(ch.length-1);let cx=x-tot/2;const al=c.textAlign;c.textAlign='left';ch.forEach((k,i)=>{c.fillText(k,cx,y);cx+=ws[i]+sp;});c.textAlign=al;}
 export function rr(c,x,y,w,h,r){c.beginPath();if(c.roundRect)c.roundRect(x,y,w,h,r);else c.rect(x,y,w,h);}
@@ -43,7 +43,7 @@ let MEAS=null;const meas=()=>MEAS||(MEAS=document.createElement('canvas').getCon
 const twid=(txt,font,sp)=>{const m=meas();m.font=font;const ch=[...String(txt)];return ch.reduce((a,k)=>a+m.measureText(k).width,0)+(sp||0)*Math.max(0,ch.length-1);};
 const T_=(txt,size,font,weight,sp)=>({w:twid(txt,`${weight||400} ${size}px ${SF[font]}`,sp),h:size*1.3});
 function addText(els,id,x,y,txt,size,font,weight,sp,extra){const m=T_(txt,size,font,weight,sp);els.push({id,type:'text',x,y,w:m.w+4,h:m.h,p:{text:txt,size,font,weight,sp,...(extra||{})}});return m;}
-function arcBox(text,size,R,sp){const L=twid(text,`${size}px ${SF.arc}`,sp);const th=Math.min(Math.PI*0.95,L/R);return{w:2*R*Math.sin(th/2)+size*1.3,h:R*(1-Math.cos(th/2))+size*1.2};}
+function arcBox(text,size,R,sp,font){const L=twid(text,font||`${size}px ${SF.arc}`,sp);const th=Math.min(Math.PI*0.95,L/R);return{w:2*R*Math.sin(th/2)+size*1.3,h:R*(1-Math.cos(th/2))+size*1.2};}
 function statsDims(items,layout,vs,ls,width){const n=items.length,rh=vs*1.02+ls*2;if(layout==='stack')return{w:width,h:n*rh,rh};if(layout==='grid2')return{w:width,h:Math.ceil(n/2)*rh,rh};return{w:width,h:rh,rh};}
 function mkRoute(seed){const p1=rnd(seed)*6,p2=rnd(seed+1)*6,pts=[];for(let i=0;i<=140;i++){const th=i/140*Math.PI*1.9;const r=1+0.32*Math.sin(3*th+p1)+0.18*Math.sin(5*th+p2)+0.06*Math.sin(17*th);pts.push([Math.cos(th)*r,Math.sin(th)*r*0.85]);}
   const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]),x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);return pts.map(([x,y])=>[0.04+(x-x0)/(x1-x0)*0.92,0.04+(y-y0)/(y1-y0)*0.92]);}
@@ -117,13 +117,36 @@ SCENES.vertical=(W,H,d,k)=>{const u=Math.min(W,H)/1080*k,els=[],tall=H/W>1.5,wid
   if(d.zones){const zh=110*u;els.push({id:'zones',type:'zones',x:cx,y:Math.max(y+zh/2,H*0.62),w:cw*0.95,h:zh,p:{zones:d.zones,ls:Math.min(22*u,cw/26),bh:26*u}});}
   if(d.days){const sz=Math.min(30*u,cw*1.25/Math.max(10,d.days.length));const m=T_(d.days,sz,'lbl',500,4*u);els.push({id:'days',type:'days',x:cx,y:H*0.92,w:m.w+sz*3,h:m.h,p:{text:d.days,size:sz,sp:4*u}});}
   return{els,total:H*0.9};};
+// T-skjorte: stacked vintage print after Miguel's Holzweiler shirt (arched name, emblem, drop-cap pair, arched word, seal, smile arc, big slab word, small caps line).
+SCENES.shirt=(W,H,d,k)=>{const u=Math.min(W,H)/1080*k,els=[],tall=H/W>1.5,wide=W/H>1.25,f=wide?0.78:1,st=d.stats||[];let y=H*(tall?0.05:0.035);
+  const R=(tall?520:470)*u*f,as=(tall?122:108)*u*f,ab=arcBox('IRONMAN',as,R,6*u);els.push({id:'arc',type:'arc',x:W/2,y:y+ab.h/2,w:ab.w,h:ab.h,p:{text:'IRONMAN',size:as,R,sp:6*u}});
+  const ed=(tall?260:220)*u*f,ey=y+as*1.15+ed/2;els.push({id:'emblem',type:'emblem',x:W/2,y:ey,w:ed,h:ed,p:{small:true}});y=Math.max(ey+ed/2,y+ab.h)+(tall?56:34)*u;
+  const fs=(tall?84:72)*u*f,ds=fs*2.3,lf=`${fs}px ${SF.arc}`,w1=twid('ENICE',lf,2*u),w2=twid('JESOLO',lf,2*u),dw=twid('V',`${ds}px ${SF.arc}`,0)*0.98,dwid=dw+Math.max(w1,w2),dh=ds*0.98;
+  els.push({id:'drop',type:'drop',x:W/2,y:y+dh/2,w:dwid,h:dh,p:{fs,ds,dw,w1,w2,sp:2*u}});y+=dh+(tall?44:26)*u;
+  const ws=(tall?100:86)*u*f,wR=380*u*f,wf=`700 ${ws}px ${SF.lbl}`,wb=arcBox(d.word||'TRENING',ws,wR,5*u,wf);els.push({id:'arc2',type:'arc',x:W/2,y:y+wb.h/2,w:wb.w,h:wb.h,p:{text:d.word||'TRENING',size:ws,R:wR,sp:5*u,font:'lbl',weight:700}});y+=wb.h-ws*0.1;
+  const sw=(tall?330:280)*u*f,sh=sw*0.74,ls=26*u*f,sl=['EST. 2026','JESOLO 27'],lw=Math.max(...sl.map(x=>twid(x,`600 ${ls}px ${SF.lbl}`,2*u)));const s0=st[0]||{val:'70.3',unit:'',label:''};
+  els.push({id:'seal',type:'seal',x:W/2,y:y+sh/2,w:sw+2*(lw+40*u),h:sh,p:{sw,sh,ls,lw,sl,s:s0}});y+=sh+(tall?8:4)*u;
+  if(d.sub){const cs=(tall?80:68)*u*f,cR=420*u*f,cf=`700 ${cs}px ${SF.lbl}`,cb=arcBox(d.sub.toUpperCase(),cs,cR,4*u,cf);els.push({id:'arcd',type:'arcd',x:W/2,y:y+cb.h/2,w:cb.w,h:cb.h,p:{text:d.sub.toUpperCase(),size:cs,R:cR,sp:4*u}});y+=cb.h+(tall?30:16)*u;}
+  const bs=(tall?220:180)*u*f,bm=T_('70.3',bs,'num',400,10*u);els.push({id:'big',type:'big',x:W/2,y:y+bm.h*0.42,w:bm.w,h:bm.h*0.84,p:{text:'70.3',size:bs,sp:10*u}});y+=bm.h*0.84+6*u;
+  const rest=(d.stats&&st[0]?st.slice(1):st).map(s=>`${s.val}${s.unit?' '+s.unit:''}`.toUpperCase()).join('  ·  ');
+  if(rest){const m=addText(els,'line',W/2,y+22*u,rest,(tall?38:34)*u*f,'num',400,3*u);y+=m.h+14*u;}
+  if(d.days){const m=T_(d.days,34*u,'lbl',500,7*u);els.push({id:'days',type:'days',x:W/2,y:Math.max(y+40*u,H-H*0.04-20*u),w:m.w+110*u,h:m.h,p:{text:d.days,size:34*u,sp:7*u}});y+=m.h+40*u;}
+  return{els,total:y};};
 export function mkScene(tpl,W,H,d){let k=1,r=null;for(let i=0;i<4;i++){r=SCENES[tpl](W,H,d,k);if(r.total<=H*0.97)break;k*=H*0.95/r.total;}return r.els;}
 function drawEl(c,el,o,lt,ga){const p=el.p,ink=p.onPaper?o.paperInk:o.ink;c.fillStyle=ink;c.strokeStyle=ink;c.globalAlpha=ga;const cl=v=>Math.max(0,Math.min(1,v));
   switch(el.type){
   case 'text':{c.globalAlpha=ga*(p.alpha||1);c.font=`${p.weight||400} ${p.size}px ${SF[p.font]}`;c.textBaseline='middle';spaced(c,p.text,0,0,p.sp||0);break;}
   case 'days':{c.font=`500 ${p.size}px ${SF.lbl}`;c.textBaseline='middle';spaced(c,p.text,0,0,p.sp);const tw=twid(p.text,c.font,p.sp);star(c,-tw/2-p.size*0.9,-p.size*0.04,p.size*0.3);star(c,tw/2+p.size*0.9,-p.size*0.04,p.size*0.3);break;}
-  case 'arc':{c.font=`${p.size}px ${SF.arc}`;c.textBaseline='alphabetic';const ch=[...p.text],ws=ch.map(x=>c.measureText(x).width);const L=ws.reduce((a,b)=>a+b,0)+p.sp*(ch.length-1);const th=L/p.R;const cy=-el.h/2+p.size*1.05+p.R;let a=-Math.PI/2-th/2;
+  case 'arc':{c.font=`${p.weight||400} ${p.size}px ${SF[p.font||'arc']}`;c.textBaseline='alphabetic';const ch=[...p.text],ws=ch.map(x=>c.measureText(x).width);const L=ws.reduce((a,b)=>a+b,0)+p.sp*(ch.length-1);const th=L/p.R;const cy=-el.h/2+p.size*1.05+p.R;let a=-Math.PI/2-th/2;
     ch.forEach((x,i)=>{const kk=cl((lt-i*0.06)/0.3);const am=a+ws[i]/2/p.R;if(kk>0){c.save();c.translate(Math.cos(am)*p.R,cy+Math.sin(am)*p.R);c.rotate(am+Math.PI/2);c.globalAlpha=ga*kk;c.textAlign='center';c.fillText(x,0,0);c.restore();}a+=(ws[i]+p.sp)/p.R;});break;}
+  case 'drop':{const top=-el.h/2,x0=-el.w/2;c.textBaseline='alphabetic';c.textAlign='left';c.font=`${p.ds}px ${SF.arc}`;c.fillText('V',x0,top+p.ds*0.8);c.font=`${p.fs}px ${SF.arc}`;
+    const lx=x0+p.dw,rx=lx+Math.max(p.w1,p.w2);spaced(c,'ENICE',lx+p.w1/2,top+p.fs*1.0,p.sp);spaced(c,'JESOLO',rx-p.w2/2,top+p.fs*2.05,p.sp);c.textAlign='center';break;}
+  case 'seal':{const a=p.sw/2,b=p.sh/2;c.lineWidth=a*0.035;c.beginPath();c.ellipse(0,0,a*0.98,b*0.97,0,0,Math.PI*2);c.stroke();c.lineWidth=a*0.014;c.beginPath();c.ellipse(0,0,a*0.88,b*0.85,0,0,Math.PI*2);c.stroke();
+    c.textAlign='center';c.textBaseline='middle';const v=String(p.s.val);let vs=b*1.0;c.font=`${vs}px ${SF.num}`;const mw=a*1.5;const vw=c.measureText(v).width;if(vw>mw){vs*=mw/vw;c.font=`${vs}px ${SF.num}`;}
+    const lab=[p.s.unit,p.s.label].filter(Boolean).join(' · ').toUpperCase();c.fillText(v,0,lab?-b*0.12:0);if(lab){c.font=`600 ${b*0.17}px ${SF.lbl}`;spaced(c,lab,0,b*0.5,b*0.03);}
+    c.font=`600 ${p.ls}px ${SF.lbl}`;spaced(c,p.sl[0],-a-p.lw/2-20*(p.ls/26),0,p.ls*0.08);spaced(c,p.sl[1],a+p.lw/2+20*(p.ls/26),0,p.ls*0.08);break;}
+  case 'arcd':{c.font=`700 ${p.size}px ${SF.lbl}`;c.save();c.translate(0,el.h/2-p.size*0.2-p.R);ringText(c,p.text,p.R,p.sp);c.restore();break;}
+  case 'big':{c.font=`${p.size}px ${SF.num}`;c.textBaseline='middle';spaced(c,p.text,0,p.size*0.04,p.sp);const bg=bgColor(o.bg);if(bg){c.save();c.strokeStyle=bg;c.lineWidth=p.size*0.014;c.globalAlpha=ga*0.85;const ch=[...p.text],ws=ch.map(q=>c.measureText(q).width);let x=-(ws.reduce((a2,b2)=>a2+b2,0)+p.sp*(ch.length-1))/2;c.textAlign='left';ch.forEach((q,i)=>{c.save();c.translate(x+ws[i]*0.5,p.size*0.04);c.scale(0.86,0.86);c.strokeText(q,-ws[i]*0.5,0);c.restore();x+=ws[i]+p.sp;});c.restore();c.textAlign='center';}break;}
   case 'vtext':{c.save();c.rotate(Math.PI/2);c.font=`${p.size}px ${SF.arc}`;c.textBaseline='middle';spaced(c,p.text,0,0,p.sp);c.restore();break;}
   case 'emblem':{const r=el.w/2;c.lineWidth=r*0.035;c.beginPath();c.arc(0,0,r*0.96,0,Math.PI*2);c.stroke();c.lineWidth=r*0.014;c.beginPath();c.arc(0,0,r*(p.small?0.86:0.78),0,Math.PI*2);c.stroke();
     if(!p.small){c.font=`600 ${r*0.095}px ${SF.lbl}`;ringText(c,'TRI 70.3 · VENICE-JESOLO · 2027',r*0.885,r*0.012);star(c,0,-r*0.87,r*0.045);}

@@ -190,7 +190,7 @@ function someData(src: Src, picked: Act[], common: Item[]) {
   const dl = `${daysLeft()} DAGER TIL JESOLO`;
   if (src.kind === 'plan') {
     const w = today().w;
-    return { title: 'Mot Jesolo', sub: w < 1 ? 'Planen starter 26. oktober' : `Uke ${Math.min(WEEKS, w)} av ${WEEKS}`, items: common, daysText: dl, defOn: ['weight', 'vo2', 'sleep', 'totalKm', 'days'] };
+    return { title: 'Mot Jesolo', sub: w < 1 ? 'Planen starter 26. oktober' : `Uke ${Math.min(WEEKS, w)} av ${WEEKS}`, items: common, daysText: dl, word: 'TRENING', defOn: ['weight', 'vo2', 'sleep', 'totalKm', 'days'] };
   }
   const km = picked.reduce((s, a) => s + a.km, 0);
   const min = picked.reduce((s, a) => s + a.min, 0);
@@ -217,7 +217,9 @@ function someData(src: Src, picked: Act[], common: Item[]) {
     ...(elev > 0 ? [{ k: 'elev', label: 'Høydemeter', val: nf(elev, 0), unit: 'm' }] : []),
     ...common,
   ];
-  return { title, sub, items, daysText: dl, defOn: ['km', 'time', 'eff', 'hr', 'days'] };
+  const WORD: Record<string, string> = { swim: 'SVØMMING', bike: 'SYKKEL', run: 'LØPING', strength: 'STYRKE' };
+  const word = sports.length === 1 ? WORD[sports[0]] ?? 'TRENING' : sports.includes('bike') && sports.includes('run') ? 'BRICK' : 'TRENING';
+  return { title, sub, items, daysText: dl, word, defOn: ['km', 'time', 'eff', 'hr', 'days'] };
 }
 
 function Editor({ src, picked, common, onBack }: { src: Src; picked: Act[]; common: Item[]; onBack: () => void }) {
@@ -272,7 +274,7 @@ function Editor({ src, picked, common, onBack }: { src: Src; picked: Act[]; comm
   const paper = bg === 'navy' ? '#24384A' : '#FBF8F1';
   const paperInk = lum(paper) > 0.5 ? (lum(inkC) > 0.6 ? '#3E5C6E' : inkC) : lum(inkC) < 0.45 ? '#F2EEE6' : inkC;
   const o: Opts = { bg, ink: inkC, paper, paperInk, prText: bgColor(bg) || (lum(inkC) > 0.5 ? '#1B2A33' : '#F2EEE6') };
-  const dd = { title: D.title, sub: D.sub, stats: D.items.filter((i) => on[i.k]), zones: null, pr: false, days: on.days ? D.daysText : '', route };
+  const dd = { title: D.title, sub: D.sub, word: D.word, stats: D.items.filter((i) => on[i.k]), zones: null, pr: false, days: on.days ? D.daysText : '', route };
   const ordered = (els: El[]) => {
     if (!order) return els;
     const ix = (id: string) => {
