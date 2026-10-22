@@ -122,11 +122,11 @@ Fungerer alt? Si fra, så starter vi fase 2 (Rubens ukeplan).
 
 ## 5. Fase 2 – Rubens ukeplan
 
-Gjøres én gang. Begge filene kan kjøres på nytt uten å ødelegge noe.
+Gjøres én gang. Filene kan kjøres på nytt uten å ødelegge noe.
 
-1. Supabase → **SQL Editor** → *New query* → lim inn hele `supabase/migrations/0002_coach_plan.sql` → **Run**. Skal si «Success».
-2. *New query* → lim inn hele `supabase/seed_plan.sql` → **Run**. Nederst skal du se omtrent: templates 12 · planned 312 · progression_rows 130 · blocks 7 · focus_days 182.
-3. *New query* → lim inn `supabase/tests/rls_test.sql` → **Run**. Alle linjene skal si **PASS**.
+1. Supabase → **SQL Editor** → *New query* → lim inn hele `supabase/fase2_kjor_denne.sql` → **Run**. (Den inneholder både 0002 og seed_plan.)
+   Nederst skal du se omtrent: templates 12 · planned 312 · progression_rows 130 · blocks 7 · focus_days 182.
+2. *New query* → lim inn `supabase/tests/rls_test.sql` → **Run**. Alle linjene skal si **PASS**.
 
 ### Test fase 2 (logg inn som Ruben)
 - [ ] **Ukeplan** viser «Uke 1 · Grunnlag 1 · 26. okt – 1. nov» med økter hver dag. ‹ › blar uker (sveip på mobil).
