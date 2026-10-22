@@ -311,3 +311,4 @@ input:focus, textarea:focus { outline: none; }
   .some-edit { grid-template-columns: minmax(0, 380px) minmax(0, 1fr); }
   .some-preview { max-width: 380px; }
 }
+.some-grid { display: grid; gap: 18px; align-items: start; }

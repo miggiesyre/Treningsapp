@@ -20,6 +20,7 @@ export type StravaActivity = {
   average_watts?: number;
   average_heartrate?: number;
   total_elevation_gain?: number;
+  map?: { summary_polyline?: string | null; polyline?: string | null };
 };
 
 export function stravaEnv() {
