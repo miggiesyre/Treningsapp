@@ -1,5 +1,10 @@
-import { PageTitle } from '@/components/app-shell';
+import { Home } from '@/components/athlete/home';
+import { ClientOnly } from '@/components/client-only';
 
 export default function Page() {
-  return <PageTitle title="Hjem" />;
+  return (
+    <ClientOnly>
+      <Home />
+    </ClientOnly>
+  );
 }

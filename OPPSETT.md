@@ -1,6 +1,6 @@
 # Oppsett (det du må gjøre selv)
 
-Fase 1: steg 1–4. Fase 2 (Rubens ukeplan): steg 5.
+Fase 1: steg 1–4. Fase 2 (Rubens ukeplan): steg 5. Fase 3 (din side): steg 6.
 
 Alt her er gratis. Regn med ca. 1 time første gang.
 **Gyldne regel:** Nøkler og passord limes bare inn i Supabase, Vercel eller fila `.env.local` på Macen din. Aldri i chat, aldri i koden.
@@ -137,6 +137,18 @@ Gjøres én gang. Filene kan kjøres på nytt uten å ødelegge noe.
 - [ ] Dra en økt til en annen dag (PC). På mobil: trykk økta → velg dag under «Dag» → lagre.
 - [ ] «Kopier uke til…» → «Neste uke» → Kopier. Merk: øktene i ukene du velger blir **erstattet**.
 - [ ] **Økter**-fanen: «+ Ny økt» lagrer i biblioteket. Trykk en innebygd økt → endre notat/innendørsalternativ.
+
+---
+
+## 6. Fase 3 – din side (Miguel)
+
+Ingen SQL denne gangen. Logg inn som deg selv og test:
+- [ ] **Hjem:** dato, «Uke X av 26», nedtellingsring til Jesolo, Dagens innsjekk (trykk Vekt → hjul → Lagre → grønn ✓), I dag med økt(er) og Dagens fokus, Denne uka.
+- [ ] Trykk en økt → øktsiden med tall, program, «Fra Ruben» og kommentarer.
+- [ ] **Bytt økt** → Hopp over → Sliten. Ruben ser «Hoppet over · Sliten» på økta i Ukeplan. «Angre endring» fjerner det.
+- [ ] Styrkeøkt → **Start styrkelogg** → still kg/reps → «✓ Sett 1 ferdig» → … → Lagre og lukk. Økta får «✓ Logget».
+- [ ] **+ Egen økt** (Hjem eller Trening) → Ruben ser den i Ukeplan.
+- [ ] **Trening:** uka dag for dag, ‹ › og sveip.
 
 ---
 

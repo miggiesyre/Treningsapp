@@ -18,7 +18,15 @@ export type Planned = {
   note_override: string | null;
   indoor_alt_override: string | null;
 };
-export type Change = { planned_session_id: string; kind: 'moved' | 'shortened' | 'indoor' | 'skipped'; reason: string | null; to_date: string | null; created_at: string };
+export type Change = {
+  id: string;
+  planned_session_id: string;
+  kind: 'moved' | 'shortened' | 'indoor' | 'skipped';
+  reason: string | null;
+  to_date: string | null;
+  coach_decision: string | null;
+  created_at: string;
+};
 export type Own = { id: string; date: string; sport: string; title: string | null; duration_min: number | null; distance_km: number | null; comment: string | null };
 export type WeekData = { planned: Planned[]; changes: Change[]; focus: Record<string, string>; own: Own[] };
 
@@ -43,6 +51,8 @@ export const useCoach = () => {
   if (!c) throw new Error('useCoach outside CoachProvider');
   return c;
 };
+/** Same plan data on the athlete side (Miguel reads; RLS limits templates to the ones in his plan). */
+export const usePlan = useCoach;
 
 export const blockOf = (blocks: Block[], w: number) => blocks.find((b) => w >= b.week_from && w <= b.week_to);
 
@@ -92,7 +102,7 @@ export function CoachProvider({ athleteId, coachId, children }: { athleteId: str
       const planned = (p.data ?? []) as Planned[];
       const ids = planned.map((r) => r.id);
       const c = ids.length
-        ? await supabase.from('session_changes').select('planned_session_id, kind, reason, to_date, created_at').in('planned_session_id', ids).order('created_at')
+        ? await supabase.from('session_changes').select('id, planned_session_id, kind, reason, to_date, coach_decision, created_at').in('planned_session_id', ids).order('created_at')
         : { data: [] };
       return {
         planned,
