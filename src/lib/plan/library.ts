@@ -287,3 +287,49 @@ export const exerciseNames = (templates: Template[]) => {
   templates.forEach((t) => t.exercises.forEach((x) => !o.includes(x.name) && o.push(x.name)));
   return o;
 };
+
+// ---------- Volume (km per sport) for "Denne uka" (prototype: LIB[].vol) ----------
+export type Vol = Partial<Record<Sport, number>>;
+const BUILTIN_VOL: Record<string, (p: Prog) => Vol> = {
+  b1: (p) => ({ bike: p.longBike ?? 0 }),
+  b2: () => ({ bike: 50 }),
+  b3: () => ({ bike: 60 }),
+  r1: (p) => ({ run: p.brickRun ?? 0 }),
+  r2: () => ({ run: 12 }),
+  r3: () => ({ run: 4, bike: 16 }),
+  r4: () => ({ run: 7 }),
+  s1: () => ({ swim: 2 }),
+  s2: () => ({ swim: 2.4 }),
+};
+export function volOf(t: Template, p: Prog, valueOverride?: number | null): Vol {
+  if (t.sport === 'strength') return { strength: 1 };
+  const m = mainOf(t);
+  const pp = m && valueOverride != null ? { ...p, [m.k]: valueOverride } : p;
+  if (t.builtin && BUILTIN_VOL[t.builtin]) return BUILTIN_VOL[t.builtin](pp);
+  return { [t.sport]: partsKm(t.parts, t.sport) };
+}
+
+// ---------- Strength exercises as the athlete sees them ----------
+export type ExerciseRow = { block: string; name: string; sets: number; reps: number; repsText: string; rir: number | null; kg: number };
+export function exerciseRows(t: Template, p: Prog, f = 1): ExerciseRow[] {
+  if (t.builtin) {
+    return (t.exercises as BuiltinExercise[]).map((x) => ({
+      block: x.code,
+      name: x.name,
+      sets: t.is_optional ? 2 : x.code.startsWith('A') ? Math.max(1, Math.round((p.sets ?? 3) * f)) : 3,
+      reps: x.repsNum,
+      repsText: x.reps,
+      rir: x.rir,
+      kg: x.kg,
+    }));
+  }
+  return (t.exercises as BuiltExercise[]).map((x, i) => ({
+    block: String(i + 1),
+    name: x.name,
+    sets: Math.max(1, Math.round(x.sets * f)),
+    reps: x.reps,
+    repsText: String(x.reps),
+    rir: x.rir,
+    kg: 0,
+  }));
+}
