@@ -322,3 +322,11 @@ input:focus, textarea:focus { outline: none; }
   .some-preview { max-width: 380px; }
 }
 .some-grid { display: grid; gap: 18px; align-items: start; }
+.some-steps { display: flex; flex-direction: column; gap: 14px; }
+/* Mobile SoMe editor: fixed between the top and the tab bar so nothing scrolls the page. */
+.some-fit {
+  position: fixed; top: 0; left: 0; right: 0; margin: 0 auto; max-width: 720px; z-index: 5; background: var(--bg);
+  bottom: calc(67px + env(safe-area-inset-bottom)); box-sizing: border-box; display: flex; flex-direction: column; gap: 8px;
+  padding: calc(6px + env(safe-area-inset-top)) 14px 8px;
+}
+.some-steps-fit { height: 158px; overflow-y: auto; gap: 10px; }

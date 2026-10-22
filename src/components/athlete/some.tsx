@@ -236,6 +236,16 @@ function Editor({ src, picked, common, onBack }: { src: Src; picked: Act[]; comm
   const [hid, setHid] = useState<string[]>([]);
   const [selEl, setSelEl] = useState<string | null>(null);
   const [panel, setPanel] = useState<Step>('mal');
+  // Mobile: the editor fills the screen between the top and the tab bar; the card is sized to the space that is left.
+  const boxRef = useRef<HTMLDivElement>(null);
+  const [box, setBox] = useState({ w: 0, h: 0 });
+  useEffect(() => {
+    const el = boxRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([e]) => setBox({ w: e.contentRect.width, h: e.contentRect.height }));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   const [out, setOut] = useState<'png' | 'video' | 'both'>('png');
   const [playKey, setPlayKey] = useState(0);
   const [busy, setBusy] = useState('');
@@ -363,6 +373,8 @@ function Editor({ src, picked, common, onBack }: { src: Src; picked: Act[]; comm
   };
 
   const phv = wide ? 'min(72vh, 700px)' : '58vh';
+  const nextStep = STEPS[STEPS.findIndex(([k]) => k === panel) + 1];
+  const pw = Math.max(0, Math.min(box.w, (box.h * W) / H));
   const bh = wide ? 50 : 42;
   const checker = bg === 'none' ? 'repeating-conic-gradient(#bdb6aa 0% 25%, #d9d3c8 0% 50%) 0 0 / 20px 20px' : 'transparent';
   const toggles = [
@@ -371,8 +383,8 @@ function Editor({ src, picked, common, onBack }: { src: Src; picked: Act[]; comm
   ];
 
   return (
-    <div className="some-grid" style={{ gridTemplateColumns: wide ? 'minmax(0,1fr) 380px' : 'minmax(0,1fr)' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: wide ? 10 : 6, alignItems: 'center', minWidth: 0, ...(wide ? {} : { position: 'sticky', top: 0, zIndex: 5, background: 'var(--bg)', paddingBottom: 6 }) }}>
+    <div className={wide ? 'some-grid' : 'some-fit'} style={wide ? { gridTemplateColumns: 'minmax(0,1fr) 380px' } : undefined}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: wide ? 10 : 4, alignItems: 'center', minWidth: 0, ...(wide ? {} : { flex: 1, minHeight: 0 }) }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', gap: 10 }}>
           <button onClick={onBack} style={{ border: 0, background: 'none', color: 'var(--ink)', fontSize: 16, padding: '6px 0', cursor: 'pointer' }}>
             ‹ {src.kind === 'acts' ? 'Velg økter' : 'Tilbake'}
@@ -388,11 +400,13 @@ function Editor({ src, picked, common, onBack }: { src: Src; picked: Act[]; comm
             ▶ Spill av
           </button>
         </div>
-        <div style={{ width: `min(100%, calc(${phv} * ${(W / H).toFixed(4)}))`, aspectRatio: `${W} / ${H}`, borderRadius: 14, overflow: 'hidden', background: checker, boxShadow: '0 10px 36px rgba(0,0,0,.28)' }}>
-          <SoMeCanvas key={'ed' + fmt} W={W} H={H} els={els} o={o} sel={selEl} playKey={playKey} onSelect={setSelEl} onCommit={(id, v) => setOv((x) => ({ ...x, [id]: v }))} />
+        <div ref={boxRef} style={wide ? { display: 'contents' } : { flex: 1, minHeight: 0, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: wide ? `min(100%, calc(${phv} * ${(W / H).toFixed(4)}))` : pw, aspectRatio: `${W} / ${H}`, borderRadius: 14, overflow: 'hidden', background: checker, boxShadow: '0 10px 36px rgba(0,0,0,.28)' }}>
+            <SoMeCanvas key={'ed' + fmt} W={W} H={H} els={els} o={o} sel={selEl} playKey={playKey} onSelect={setSelEl} onCommit={(id, v) => setOv((x) => ({ ...x, [id]: v }))} />
+          </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: 'var(--muted)' }}>
-          <span>{selEl ? `${(EL_NAMES as Record<string, string>)[selEl] || selEl} · dra eller klyp` : 'Trykk et element for å flytte det'}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: 'var(--muted)', minHeight: 30 }}>
+          <span>{selEl ? `${(EL_NAMES as Record<string, string>)[selEl] || selEl} · dra eller klyp` : wide ? 'Trykk et element for å flytte det' : 'Trykk for å flytte'}</span>
           {selEl && (
             <button onClick={() => toggleHid(selEl)} style={{ border: 0, background: 'none', color: 'var(--danger, #FF3B30)', fontWeight: 600, cursor: 'pointer', padding: 4 }}>
               Skjul
@@ -406,7 +420,7 @@ function Editor({ src, picked, common, onBack }: { src: Src; picked: Act[]; comm
         </div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: wide ? 14 : 10, minWidth: 0, fontSize: wide ? undefined : 14 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: wide ? 14 : 8, minWidth: 0, fontSize: wide ? undefined : 14, flexShrink: 0 }}>
         <div className="seg-n" style={{ gridTemplateColumns: 'repeat(6,minmax(0,1fr))', borderRadius: 12, padding: 3 }}>
           {STEPS.map(([k, l], i) => (
             <button key={k} aria-pressed={panel === k} onClick={() => setPanel(k)} style={{ padding: wide ? '9px 2px' : '8px 0', fontSize: wide ? undefined : 12.5 }}>
@@ -416,6 +430,7 @@ function Editor({ src, picked, common, onBack }: { src: Src; picked: Act[]; comm
           ))}
         </div>
 
+        <div className={wide ? 'some-steps' : 'some-steps some-steps-fit'}>
         {panel === 'format' && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,minmax(0,1fr))', gap: 8 }}>
             {(Object.keys(SOME_FMT) as Fmt[]).map((k) => {
@@ -560,11 +575,6 @@ function Editor({ src, picked, common, onBack }: { src: Src; picked: Act[]; comm
           </>
         )}
 
-        {panel !== 'del' && (
-          <button className="btn-ink" style={{ height: bh, fontSize: 15, fontWeight: 700, marginTop: 4 }} onClick={() => setPanel(STEPS[STEPS.findIndex(([k]) => k === panel) + 1][0])}>
-            Neste: {STEPS[STEPS.findIndex(([k]) => k === panel) + 1][1]} →
-          </button>
-        )}
 
         {panel === 'del' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -598,6 +608,12 @@ function Editor({ src, picked, common, onBack }: { src: Src; picked: Act[]; comm
           </div>
           {busy && <span style={{ textAlign: 'center', fontSize: 14, color: 'var(--muted)' }}>{busy}</span>}
         </div>
+        )}
+        </div>
+        {nextStep && (
+          <button className="btn-ink" style={{ height: wide ? bh : 40, fontSize: wide ? 15 : 14, fontWeight: 700, marginTop: wide ? 4 : 0, flexShrink: 0 }} onClick={() => setPanel(nextStep[0])}>
+            Neste: {nextStep[1]} →
+          </button>
         )}
       </div>
     </div>
