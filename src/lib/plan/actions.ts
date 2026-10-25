@@ -33,6 +33,22 @@ export async function removeSession(db: DB, id: string) {
   check(await db.from('planned_sessions').delete().eq('id', id));
 }
 
+/** Upcoming planned uses of a template (today and later). */
+export async function futureUses(db: DB, templateId: string) {
+  const { count } = await db.from('planned_sessions').select('id', { count: 'exact', head: true }).eq('template_id', templateId).gte('date', ymd(new Date()));
+  return count ?? 0;
+}
+
+/**
+ * Removes a session from the library and from the plan from today on. Past uses keep their history,
+ * so a template that is still referenced is hidden instead of deleted.
+ */
+export async function deleteTemplate(db: DB, templateId: string) {
+  check(await db.from('planned_sessions').delete().eq('template_id', templateId).gte('date', ymd(new Date())));
+  const { error } = await db.from('session_templates').delete().eq('id', templateId);
+  if (error) check(await db.from('session_templates').update({ hidden: true }).eq('id', templateId));
+}
+
 export async function saveFocus(db: DB, athleteId: string, date: string, text: string) {
   const t = text.trim();
   if (t) check(await db.from('day_focus').upsert({ athlete_id: athleteId, date, text: t.slice(0, 200) }));

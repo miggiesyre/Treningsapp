@@ -9,7 +9,7 @@ import { useCoach } from '@/lib/plan/coach-data';
 import { currentWeek } from '@/lib/plan/dates';
 import { ALT, defaultParts, describe, type BuiltExercise, type Template } from '@/lib/plan/library';
 import { ICONS, SP, SPORTS } from '@/lib/plan/sports';
-import { Builder } from './builder';
+import { Builder, DeleteTemplate } from './builder';
 
 /** "Økter": the coach's library grouped by sport (prototype: TRENER: BIBLIOTEK). */
 export function Library() {
@@ -132,6 +132,14 @@ function TextSheet({ t, onClose, onSaved }: { t: Template; onClose: () => void; 
       <button className="btn-ink" style={{ fontSize: 17 }} disabled={busy} onClick={save}>
         Lagre
       </button>
+      <DeleteTemplate
+        id={t.id}
+        name={t.name}
+        onDone={async () => {
+          await onSaved();
+          onClose();
+        }}
+      />
     </Sheet>
   );
 }

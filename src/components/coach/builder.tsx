@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Chips, CloseBtn, Sheet, SportIcon } from '@/components/sheet';
 import { useToast } from '@/components/toast';
 import { Wheel } from '@/components/wheel';
-import { saveDraft, type Draft } from '@/lib/plan/actions';
+import { deleteTemplate, futureUses, saveDraft, type Draft } from '@/lib/plan/actions';
 import { useCoach } from '@/lib/plan/coach-data';
 import { DAYS, dateOf, fmtD } from '@/lib/plan/dates';
 import {
@@ -132,7 +132,7 @@ export function Builder({ draft, onClose, onSaved }: { draft: Draft; onClose: ()
                         {p.kind !== 'Pause' && (
                           <>
                             <span style={{ width: 1, background: 'var(--line)', margin: '0 4px' }} />
-                            <Chips small off="var(--card2)" options={TARGETS[sp]} value={p.target} onPick={(t: Target) => setPart(i, { target: t, tval: TDEF[t](sp) })} />
+                            <Chips small off="var(--card2)" options={TARGETS[sp]} value={p.target} onPick={(t: Target) => setPart(i, { target: t, tval: TDEF[t](sp), tval2: null, ...(t === 'Kadens' ? { cad: null } : {}) })} />
                           </>
                         )}
                       </div>
@@ -140,7 +140,15 @@ export function Builder({ draft, onClose, onSaved }: { draft: Draft; onClose: ()
                         <WheelBox label={mv.label ?? ''}>
                           <Wheel key={`v${p.measure}`} h={WH} values={mv.values} value={p.val} format={mv.fmt} unit={mv.unit} onChange={(v) => setPart(i, { val: v })} />
                         </WheelBox>
-                        {p.target !== 'Ingen' && <TargetWheel key={`t${p.target}`} part={p} sport={sp} onChange={(v) => setPart(i, { tval: v })} />}
+                        {p.target !== 'Ingen' && <TargetWheel key={`t${p.target}`} part={p} sport={sp} label={p.tval2 != null ? `${p.target} fra` : undefined} onChange={(v) => setPart(i, { tval: v })} />}
+                        {p.target !== 'Ingen' && p.tval2 != null && (
+                          <TargetWheel key={`t2${p.target}`} part={{ ...p, tval: p.tval2 }} sport={sp} label="Til" onChange={(v) => setPart(i, { tval2: v })} />
+                        )}
+                        {sp === 'bike' && p.target !== 'Kadens' && p.cad != null && (
+                          <WheelBox label="Kadens">
+                            <Wheel h={WH} values={range(50, 120, 1)} value={p.cad} unit="rpm" onChange={(v) => setPart(i, { cad: v })} />
+                          </WheelBox>
+                        )}
                         {p.reps > 1 && (
                           <>
                             <WheelBox label="Antall">
@@ -159,6 +167,16 @@ export function Builder({ draft, onClose, onSaved }: { draft: Draft; onClose: ()
                             style={{ border: 0, background: 'var(--card2)', borderRadius: 999, padding: '8px 14px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
                           >
                             {p.reps > 1 ? 'Ikke gjenta' : 'Gjenta ×'}
+                          </button>
+                        )}
+                        {p.kind !== 'Pause' && p.target !== 'Ingen' && (
+                          <button onClick={() => setPart(i, { tval2: p.tval2 != null ? null : upper(p, sp) })} style={{ border: 0, background: 'var(--card2)', borderRadius: 999, padding: '8px 14px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+                            {p.tval2 != null ? 'Ett mål' : 'Fra–til'}
+                          </button>
+                        )}
+                        {sp === 'bike' && p.kind !== 'Pause' && p.target !== 'Kadens' && (
+                          <button onClick={() => setPart(i, { cad: p.cad != null ? null : 90 })} style={{ border: 0, background: 'var(--card2)', borderRadius: 999, padding: '8px 14px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+                            {p.cad != null ? 'Uten kadens' : '+ Kadens'}
                           </button>
                         )}
                         <button
@@ -303,6 +321,7 @@ export function Builder({ draft, onClose, onSaved }: { draft: Draft; onClose: ()
           Lagre i mine økter
         </button>
       )}
+      {b.mode === 'lib' && b.id && <DeleteTemplate id={b.id} name={b.name} onDone={onSaved} />}
     </Sheet>
   );
 }
@@ -316,14 +335,57 @@ function WheelBox({ label, children }: { label: string; children: React.ReactNod
   );
 }
 
-function TargetWheel({ part, sport, onChange }: { part: Part; sport: Draft['sport']; onChange: (v: number) => void }) {
+function TargetWheel({ part, sport, label, onChange }: { part: Part; sport: Draft['sport']; label?: string; onChange: (v: number) => void }) {
   const tv = targetDefSafe(part.target, sport);
   if (!tv) return null;
   return (
-    <WheelBox label={part.target}>
+    <WheelBox label={label ?? part.target}>
       <Wheel h={WH} values={tv.values} value={part.tval} format={tv.fmt} unit={tv.unit} onChange={onChange} />
     </WheelBox>
   );
 }
 
+/** Default upper end when a target becomes a range. */
+const upper = (p: Part, sp: Draft['sport']) => {
+  const v = p.tval ?? 0;
+  return p.target === 'Sone' ? Math.min(5, v + 1) : p.target === 'Tempo' ? v + (sp === 'swim' ? 5 : 30) : p.target === 'Watt' ? v + 20 : v + 5;
+};
+
 const targetDefSafe = (t: Target, sp: Draft['sport']) => (t === 'Ingen' ? null : targetDef(t, sp));
+
+/** Library: delete a session, with a confirm that says how many upcoming plan days lose it. */
+export function DeleteTemplate({ id, name, onDone }: { id: string; name: string; onDone: () => void }) {
+  const { supabase } = useCoach();
+  const toast = useToast();
+  const [ask, setAsk] = useState<number | null>(null);
+  const [busy, setBusy] = useState(false);
+  const go = async () => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      if (ask === null) {
+        setAsk(await futureUses(supabase, id));
+        setBusy(false);
+        return;
+      }
+      await deleteTemplate(supabase, id);
+      toast('Økta er slettet');
+      onDone();
+    } catch {
+      toast('Noe gikk galt – prøv igjen');
+      setBusy(false);
+    }
+  };
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'center' }}>
+      {ask !== null && (
+        <span style={{ fontSize: 14, color: 'var(--muted)', textAlign: 'center' }}>
+          Slette «{name || 'økta'}»?{ask ? ` Den ligger i planen ${ask} ${ask === 1 ? 'gang' : 'ganger'} fra i dag – de fjernes også.` : ''}
+        </span>
+      )}
+      <button className="link-bad" disabled={busy} onClick={go}>
+        {ask === null ? 'Slett økt' : 'Ja, slett'}
+      </button>
+    </div>
+  );
+}
