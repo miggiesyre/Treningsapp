@@ -6,6 +6,7 @@ import { loadAthleteWeek } from '@/lib/plan/athlete-actions';
 import { usePlan } from '@/lib/plan/coach-data';
 import { WEEKS } from '@/lib/plan/dates';
 import { parseYmd } from '@/lib/plan/dates';
+import { isPaused } from '@/lib/plan/view';
 
 const EMPTY: AthleteWeek = { planned: [], changes: [], focus: {}, own: [], activities: [], logged: {} };
 
@@ -32,7 +33,8 @@ export function useAthleteWeek(w: number) {
     reload();
   }, [reload]);
 
-  const days = useMemo(() => weekEntries(w, data, byId), [w, data, byId]);
   const swimBack = settings?.swim_paused_until ? parseYmd(settings.swim_paused_until) : null;
+  // Paused swim sessions stay in the plan for Ruben but are not shown to Miguel until swimming starts.
+  const days = useMemo(() => weekEntries(w, data, byId).map((l) => l.filter((e) => !isPaused(e.t, e.date, swimBack))), [w, data, byId, swimBack]);
   return { data, days, loaded: loaded && ready, reload, prog: prog[w] ?? {}, swimBack };
 }

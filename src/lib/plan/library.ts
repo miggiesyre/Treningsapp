@@ -4,7 +4,8 @@ import type { Sport } from './sports';
 
 export type PartKind = 'Oppvarming' | 'Drag' | 'Pause' | 'Nedkjøling';
 export type Target = 'Ingen' | 'Watt' | 'Tempo' | 'Sone' | 'Kadens';
-export type Part = { kind: PartKind; measure: 'tid' | 'dist'; val: number; target: Target; tval: number | null; reps: number; rest: number };
+/** tval2: upper end when the target is a range (sone 1–2, 5:00–5:30 /km). cad: bike cadence on top of the main target. */
+export type Part = { kind: PartKind; measure: 'tid' | 'dist'; val: number; target: Target; tval: number | null; tval2?: number | null; cad?: number | null; reps: number; rest: number };
 /** Exercise in a coach-built strength session. */
 export type BuiltExercise = { name: string; sets: number; reps: number; rir: number; rest: number };
 /** Exercise in a built-in strength session (from the spreadsheet). */
@@ -204,16 +205,21 @@ export const targetDef = (t: Target, sp: Sport): WheelDef =>
         : { values: range(50, 120, 1), unit: 'rpm' };
 
 const partAmt = (p: Part, sp: Sport) => (p.measure === 'tid' ? `${p.val} min` : sp === 'swim' ? `${p.val} m` : `${nf(p.val)} km`);
-const partTgt = (p: Part, sp: Sport) =>
-  p.target === 'Watt'
-    ? `@ ${p.tval} W`
-    : p.target === 'Tempo'
-      ? `@ ${pace(p.tval ?? 0)} ${sp === 'swim' ? '/100 m' : '/km'}`
-      : p.target === 'Sone'
-        ? `sone ${p.tval}`
-        : p.target === 'Kadens'
-          ? `${p.tval} rpm`
-          : '';
+const rng = (a: number | null, b: number | null | undefined, f: (v: number) => string) => (b != null && b !== a ? `${f(Math.min(a ?? 0, b))}–${f(Math.max(a ?? 0, b))}` : f(a ?? 0));
+const partTgt = (p: Part, sp: Sport) => {
+  const main =
+    p.target === 'Watt'
+      ? `@ ${rng(p.tval, p.tval2, String)} W`
+      : p.target === 'Tempo'
+        ? `@ ${rng(p.tval, p.tval2, pace)} ${sp === 'swim' ? '/100 m' : '/km'}`
+        : p.target === 'Sone'
+          ? `sone ${rng(p.tval, p.tval2, String)}`
+          : p.target === 'Kadens'
+            ? `${rng(p.tval, p.tval2, String)} rpm`
+            : '';
+  const cad = p.cad && p.target !== 'Kadens' ? `${p.cad} rpm` : '';
+  return [main, cad].filter(Boolean).join(' · ');
+};
 export const partSum = (p: Part, sp: Sport) => {
   if (p.kind === 'Pause') return `${partAmt(p, sp)} rolig`;
   const core = [partAmt(p, sp), partTgt(p, sp)].filter(Boolean).join(' ');
