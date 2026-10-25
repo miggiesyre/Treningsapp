@@ -132,10 +132,16 @@ export function Builder({ draft, onClose, onSaved }: { draft: Draft; onClose: ()
                         {p.kind !== 'Pause' && (
                           <>
                             <span style={{ width: 1, background: 'var(--line)', margin: '0 4px' }} />
-                            <Chips small off="var(--card2)" options={TARGETS[sp]} value={p.target} onPick={(t: Target) => setPart(i, { target: t, tval: TDEF[t](sp), tval2: null, ...(t === 'Kadens' ? { cad: null } : {}) })} />
+                            <Chips small off="var(--card2)" options={TARGETS[sp]} value={p.target} onPick={(t: Target) => setPart(i, { target: t, tval: TDEF[t](sp), tval2: null, ...(t === 'Kadens' ? { cad: null } : {}), ...(t === 'Ingen' || p.t2?.target === t ? { t2: null } : {}) })} />
                           </>
                         )}
                       </div>
+                      {p.t2 && (
+                        <div className="chips sm" style={{ alignItems: 'center' }}>
+                          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--muted)', marginRight: 4 }}>Og</span>
+                          <Chips small off="var(--card2)" options={second(p, sp)} value={p.t2.target} onPick={(t: Target) => setPart(i, { t2: { target: t, tval: TDEF[t](sp), tval2: null } })} />
+                        </div>
+                      )}
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(130px,1fr))', gap: 10 }}>
                         <WheelBox label={mv.label ?? ''}>
                           <Wheel key={`v${p.measure}`} h={WH} values={mv.values} value={p.val} format={mv.fmt} unit={mv.unit} onChange={(v) => setPart(i, { val: v })} />
@@ -143,6 +149,12 @@ export function Builder({ draft, onClose, onSaved }: { draft: Draft; onClose: ()
                         {p.target !== 'Ingen' && <TargetWheel key={`t${p.target}`} part={p} sport={sp} label={p.tval2 != null ? `${p.target} fra` : undefined} onChange={(v) => setPart(i, { tval: v })} />}
                         {p.target !== 'Ingen' && p.tval2 != null && (
                           <TargetWheel key={`t2${p.target}`} part={{ ...p, tval: p.tval2 }} sport={sp} label="Til" onChange={(v) => setPart(i, { tval2: v })} />
+                        )}
+                        {p.t2 && (
+                          <TargetWheel key={`m2${p.t2.target}`} part={{ ...p, target: p.t2.target, tval: p.t2.tval }} sport={sp} label={p.t2.tval2 != null ? `${p.t2.target} fra` : p.t2.target} onChange={(v) => setPart(i, { t2: { ...p.t2!, tval: v } })} />
+                        )}
+                        {p.t2 && p.t2.tval2 != null && (
+                          <TargetWheel key={`m2b${p.t2.target}`} part={{ ...p, target: p.t2.target, tval: p.t2.tval2 }} sport={sp} label="Til" onChange={(v) => setPart(i, { t2: { ...p.t2!, tval2: v } })} />
                         )}
                         {sp === 'bike' && p.target !== 'Kadens' && p.cad != null && (
                           <WheelBox label="Kadens">
@@ -171,7 +183,22 @@ export function Builder({ draft, onClose, onSaved }: { draft: Draft; onClose: ()
                         )}
                         {p.kind !== 'Pause' && p.target !== 'Ingen' && (
                           <button onClick={() => setPart(i, { tval2: p.tval2 != null ? null : upper(p, sp) })} style={{ border: 0, background: 'var(--card2)', borderRadius: 999, padding: '8px 14px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
-                            {p.tval2 != null ? 'Ett mål' : 'Fra–til'}
+                            {p.tval2 != null ? `Ett mål (${p.target.toLowerCase()})` : `Fra–til (${p.target.toLowerCase()})`}
+                          </button>
+                        )}
+                        {p.kind !== 'Pause' && p.target !== 'Ingen' && !p.t2 && second(p, sp).length > 0 && (
+                          <button onClick={() => { const t = second(p, sp)[0]; setPart(i, { t2: { target: t, tval: TDEF[t](sp), tval2: null } }); }} style={{ border: 0, background: 'var(--card2)', borderRadius: 999, padding: '8px 14px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+                            + Mål
+                          </button>
+                        )}
+                        {p.t2 && (
+                          <button onClick={() => setPart(i, { t2: { ...p.t2!, tval2: p.t2!.tval2 != null ? null : upper({ ...p, target: p.t2!.target, tval: p.t2!.tval }, sp) } })} style={{ border: 0, background: 'var(--card2)', borderRadius: 999, padding: '8px 14px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+                            {p.t2.tval2 != null ? `Ett mål (${p.t2.target.toLowerCase()})` : `Fra–til (${p.t2.target.toLowerCase()})`}
+                          </button>
+                        )}
+                        {p.t2 && (
+                          <button onClick={() => setPart(i, { t2: null })} style={{ border: 0, background: 'var(--card2)', borderRadius: 999, padding: '8px 14px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+                            Fjern {p.t2.target.toLowerCase()}
                           </button>
                         )}
                         {sp === 'bike' && p.kind !== 'Pause' && p.target !== 'Kadens' && (
@@ -350,6 +377,9 @@ const upper = (p: Part, sp: Draft['sport']) => {
   const v = p.tval ?? 0;
   return p.target === 'Sone' ? Math.min(5, v + 1) : p.target === 'Tempo' ? v + (sp === 'swim' ? 5 : 30) : p.target === 'Watt' ? v + 20 : v + 5;
 };
+
+/** Targets that can be added as a second goal next to the main one (cadence has its own button on the bike). */
+const second = (p: Part, sp: Draft['sport']) => TARGETS[sp].filter((t) => t !== 'Ingen' && t !== 'Kadens' && t !== p.target);
 
 const targetDefSafe = (t: Target, sp: Draft['sport']) => (t === 'Ingen' ? null : targetDef(t, sp));
 
