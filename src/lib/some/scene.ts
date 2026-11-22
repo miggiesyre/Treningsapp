@@ -3,24 +3,25 @@
 // Share-card scenes, ported 1:1 from the v8 prototype (SCENES, drawEl, renderScene, sceneVideo).
 // Kept close to the original so the look matches exactly; typed wrappers live in some.tsx.
 
-export let SF = { arc: '"Rye","Alfa Slab One",Georgia,serif', num: '"Alfa Slab One",Rockwell,Georgia,serif', lbl: '"Oswald","Arial Narrow",sans-serif', mono: '"Courier Prime","Courier New",monospace' };
+export let SF = { arc: '"Rye","Alfa Slab One",Georgia,serif', num: '"Alfa Slab One",Rockwell,Georgia,serif', lbl: '"Oswald","Arial Narrow",sans-serif', mono: '"Courier Prime","Courier New",monospace', wide: '"Archivo Black","Arial Black",sans-serif' };
 /** next/font renames the families; read the real names from the CSS variables. */
 export function setFonts() {
   if (typeof window === 'undefined') return;
   const v = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
-  const rye = v('--font-rye'), slab = v('--font-slab'), osw = v('--font-oswald'), cou = v('--font-courier');
+  const rye = v('--font-rye'), slab = v('--font-slab'), osw = v('--font-oswald'), cou = v('--font-courier'), wid = v('--font-wide');
   SF = {
     arc: `${rye ? rye + ',' : ''}${slab ? slab + ',' : ''}Georgia,serif`,
     num: `${slab ? slab + ',' : ''}Rockwell,Georgia,serif`,
     lbl: `${osw ? osw + ',' : ''}"Arial Narrow",sans-serif`,
     mono: `${cou ? cou + ',' : ''}"Courier New",monospace`,
+    wide: `${wid ? wid + ',' : ''}"Arial Black",sans-serif`,
   };
   MEAS = null;
 }
 export const INKS = ['#F2EEE6', '#3E5C6E', '#1B2A33', '#111111', '#FFFFFF', '#19B2F5', '#FFC20E', '#FF3B30', '#AF52DE'];
-export const EL_NAMES = { arc: 'IRONMAN-bue', head: 'IRONMAN', vtext: 'IRONMAN', emblem: 'Logo-emblem', title: 'Tittel', sub: 'Dato', meta: 'Undertittel', stats: 'Tall', zones: 'Soner', pr: 'PR-merke', days: 'Dager til Jesolo', route: 'Rute', panel: 'Kvittering', rows: 'Rader', barcode: 'Strekkode', arc2: 'Sport-bue', drop: 'Venice Jesolo', seal: 'Segl', arcd: 'Dato-bue', big: '70.3', line: 'Tall-linje', line2: 'Tall-linje 2', list: 'Tall-liste', stamp: 'Stempel', hero: 'Stort tall', unit: 'Enhet', top: 'Topptekst', frame: 'Ramme', foot: 'Bunntekst', word: 'Sport' };
+export const EL_NAMES = { arc: 'IRONMAN-bue', head: 'IRONMAN', vtext: 'IRONMAN', emblem: 'Logo-emblem', title: 'Tittel', sub: 'Dato', meta: 'Undertittel', stats: 'Tall', zones: 'Soner', pr: 'PR-merke', days: 'Dager til Jesolo', route: 'Rute', panel: 'Kvittering', rows: 'Rader', barcode: 'Strekkode', arc2: 'Sport-bue', drop: 'Venice Jesolo', seal: 'Segl', arcd: 'Dato-bue', big: '70.3', line: 'Tall-linje', line2: 'Tall-linje 2', list: 'Tall-liste', stamp: 'Stempel', hero: 'Stort tall', srow: 'Tall-rad', unit: 'Enhet', top: 'Topptekst', frame: 'Ramme', foot: 'Bunntekst', word: 'Sport' };
 export const SOME_FMT = { story: { l: 'Story', r: '9:16', W: 1080, H: 1920 }, post: { l: 'Innlegg', r: '4:5', W: 1080, H: 1350 }, square: { l: 'Kvadrat', r: '1:1', W: 1080, H: 1080 }, land: { l: 'Landskap', r: '16:9', W: 1920, H: 1080 } };
-export const SOME_TPL = [['badge', 'Badge'], ['shirt', 'T-skjorte'], ['route', 'Rute'], ['receipt', 'Kvittering'], ['vertical', 'Vertikal'], ['column', 'Loddrett'], ['stamp', 'Stempel'], ['label', 'Etikett'], ['hero', 'Stort tall']];
+export const SOME_TPL = [['badge', 'Badge'], ['shirt', 'T-skjorte'], ['route', 'Rute'], ['receipt', 'Kvittering'], ['vertical', 'Vertikal'], ['column', 'Loddrett'], ['stamp', 'Stempel'], ['label', 'Etikett'], ['hero', 'Stort tall'], ['overlay', 'Overlay']];
 const rnd = (s) => { const x = Math.sin(s * 12.9898) * 43758.5453; return x - Math.floor(x); };
 export function spaced(c,txt,x,y,sp){const ch=[...txt],ws=ch.map(k=>c.measureText(k).width);const tot=ws.reduce((a,b)=>a+b,0)+sp*(ch.length-1);let cx=x-tot/2;const al=c.textAlign;c.textAlign='left';ch.forEach((k,i)=>{c.fillText(k,cx,y);cx+=ws[i]+sp;});c.textAlign=al;}
 export function rr(c,x,y,w,h,r){c.beginPath();if(c.roundRect)c.roundRect(x,y,w,h,r);else c.rect(x,y,w,h);}
@@ -174,10 +175,25 @@ SCENES.hero=(W,H,d,k)=>{const u=Math.min(W,H)/1080*k,els=[],tall=H/W>1.5,wide=W/
   const rest=st.slice(1);if(rest.length){const vs=(tall?76:60)*u,ls=vs*0.27,lay=rest.length<=3?'row':'grid2';const sd=statsDims(rest,lay,vs,ls,W*(wide?0.6:0.84));els.push({id:'stats',type:'stats',x:W/2,y:y+sd.h/2,w:sd.w,h:sd.h,p:{items:rest,layout:lay,vs,ls,rh:sd.rh}});y+=sd.h+20*u;}
   if(d.days){const m=T_(d.days,34*u,'lbl',500,7*u);els.push({id:'days',type:'days',x:W/2,y:Math.max(y+30*u,H*0.94),w:m.w+110*u,h:m.h,p:{text:d.days,size:34*u,sp:7*u}});y+=m.h+30*u;}
   return{els,total:y};};
+// Overlay: Strava-style sticker — one huge wide number (distance), a row of small numbers under it. Made for a transparent PNG on top of your own photo/video.
+const SX=1.12;
+const ovVal=s=>{if(!s)return'';let v=String(s.val);if(s.k==='time'){const m=/^(\d+):(\d{2})$/.exec(v);if(m)v=+m[1]?`${m[1]}T ${m[2]}M`:`${+m[2]}M`;return v;}
+  if(s.unit==='/km')return v+' /KM';return(v+(s.unit?' '+s.unit:'')).toUpperCase();};
+SCENES.overlay=(W,H,d,k)=>{const u=Math.min(W,H)/1080*k,els=[],tall=H/W>1.5,st=d.stats||[];
+  const s0=st.find(s=>s.k==='km')||st[0]||{k:'',val:'70.3',unit:''};const pri=['eff','time','elev','hr','speed'];
+  const rest=st.filter(s=>s!==s0).sort((a,b)=>{const i=pri.indexOf(a.k),j=pri.indexOf(b.k);return(i<0?99:i)-(j<0?99:j);}).slice(0,3);
+  const text=ovVal(s0);const w100=twid(text,`100px ${SF.wide}`,0)*SX;const hs=Math.min(100*W*0.74/w100,(tall?180:140)*u);const hw=w100*hs/100;
+  const y=H*(tall?0.6:0.56);els.push({id:'hero',type:'sbig',x:W/2,y,w:hw,h:hs*0.86,p:{text,size:hs}});
+  if(rest.length){const rs=hs*0.24,items=rest.map(ovVal);els.push({id:'srow',type:'srow',x:W/2,y:y+hs*0.43+rs*1.35,w:hw,h:rs*1.3,p:{items,size:rs}});}
+  return{els,total:y+hs};};
 export function mkScene(tpl,W,H,d){let k=1,r=null;for(let i=0;i<4;i++){r=SCENES[tpl](W,H,d,k);if(r.total<=H*0.97)break;k*=H*0.95/r.total;}
   r.els.forEach(e=>{const s=Math.min(1,W*0.94/e.w,H*0.97/e.h);if(s<1)e.s=s;const hw=e.w*(e.s||1)/2,hh=e.h*(e.s||1)/2;if(hw*2<W)e.x=Math.max(hw+W*0.03,Math.min(W-hw-W*0.03,e.x));if(hh*2<H)e.y=Math.max(hh,Math.min(H-hh,e.y));});return r.els;}
 function drawEl(c,el,o,lt,ga){const p=el.p,ink=p.onPaper?o.paperInk:o.ink;c.fillStyle=ink;c.strokeStyle=ink;c.globalAlpha=ga;const cl=v=>Math.max(0,Math.min(1,v));
   switch(el.type){
+  case 'sbig':{c.save();c.scale(SX,1);c.font=`${p.size}px ${SF.wide}`;c.textBaseline='middle';c.textAlign='center';c.fillText(p.text,0,p.size*0.04);c.restore();break;}
+  case 'srow':{const n=p.items.length,w=el.w;c.save();c.scale(SX,1);c.font=`${p.size}px ${SF.wide}`;c.textBaseline='middle';
+    p.items.forEach((t,i)=>{const kk=cl((lt-i*0.12)/0.4);if(kk<=0)return;c.globalAlpha=ga*kk;let x=0;if(n>1){if(i===0){c.textAlign='left';x=-w/2;}else if(i===n-1){c.textAlign='right';x=w/2;}else{c.textAlign='center';x=n===3?0:-w/2+w*i/(n-1);}}else c.textAlign='center';c.fillText(t,x/SX,0);});
+    c.restore();c.globalAlpha=ga;c.textAlign='center';break;}
   case 'text':{c.globalAlpha=ga*(p.alpha||1);c.font=`${p.weight||400} ${p.size}px ${SF[p.font]}`;c.textBaseline='middle';spaced(c,p.text,0,0,p.sp||0);break;}
   case 'days':{c.font=`500 ${p.size}px ${SF.lbl}`;c.textBaseline='middle';spaced(c,p.text,0,0,p.sp);const tw=twid(p.text,c.font,p.sp);star(c,-tw/2-p.size*0.9,-p.size*0.04,p.size*0.3);star(c,tw/2+p.size*0.9,-p.size*0.04,p.size*0.3);break;}
   case 'arc':{c.font=`${p.weight||400} ${p.size}px ${SF[p.font||'arc']}`;c.textBaseline='alphabetic';const ch=[...p.text],ws=ch.map(x=>c.measureText(x).width);const L=ws.reduce((a,b)=>a+b,0)+p.sp*(ch.length-1);const th=L/p.R;const cy=-el.h/2+p.size*1.05+p.R;let a=-Math.PI/2-th/2;

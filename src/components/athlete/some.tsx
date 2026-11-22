@@ -466,6 +466,12 @@ function Editor({ src, picked, common, onBack }: { src: Src; picked: Act[]; comm
                   onClick={() => {
                     setTpl(k);
                     resetLayout();
+                    // Overlay is a sticker: transparent, red, with elevation like the Strava look.
+                    if (k === 'overlay') {
+                      setBg('none');
+                      setInk('#FF3B30');
+                      setOn((o) => ({ ...o, elev: true }));
+                    }
                   }}
                   style={{ flex: '0 0 auto', scrollSnapAlign: 'start', border: 0, background: 'none', display: 'flex', flexDirection: 'column', gap: 7, alignItems: 'center', cursor: 'pointer', padding: 2 }}
                 >
