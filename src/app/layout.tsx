@@ -1,11 +1,12 @@
 import type { Metadata, Viewport } from 'next';
-import { Alfa_Slab_One, Courier_Prime, Oswald, Rye } from 'next/font/google';
+import { Alfa_Slab_One, Archivo_Black, Courier_Prime, Oswald, Rye } from 'next/font/google';
 import { cookies } from 'next/headers';
 import { isTheme } from '@/lib/roles';
 import './globals.css';
 
 const slab = Alfa_Slab_One({ weight: '400', subsets: ['latin'], variable: '--font-slab', display: 'swap' });
 const courier = Courier_Prime({ weight: ['400', '700'], subsets: ['latin'], variable: '--font-courier', display: 'swap' });
+const wide = Archivo_Black({ weight: '400', subsets: ['latin'], variable: '--font-wide', display: 'swap' });
 const rye = Rye({ weight: '400', subsets: ['latin'], variable: '--font-rye', display: 'swap' });
 const oswald = Oswald({ weight: ['400', '500', '600'], subsets: ['latin'], variable: '--font-oswald', display: 'swap' });
 
@@ -29,7 +30,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const saved = (await cookies()).get('theme')?.value;
   const theme = isTheme(saved) ? saved : 'dark';
   return (
-    <html lang="nb" data-theme={theme} className={`${slab.variable} ${courier.variable} ${oswald.variable} ${rye.variable}`}>
+    <html lang="nb" data-theme={theme} className={`${slab.variable} ${courier.variable} ${oswald.variable} ${rye.variable} ${wide.variable}`}>
       <body>{children}</body>
     </html>
   );
